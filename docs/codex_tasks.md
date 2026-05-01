@@ -56,6 +56,8 @@ Acceptance:
 
 ## Phase 2 - Run state machine
 
+Status: implemented (CR-003 minimal placeholder navigation).
+
 Implement states:
 
 * BOOT

@@ -174,3 +174,62 @@ Acceptance criteria:
 - Duplicate ids are detected.
 - Missing enemy references in rounds are detected.
 - `tools/validate_content.gd` reports success/failure in headless mode.
+
+---
+
+## CR-003 — Minimal run state machine and placeholder navigation
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Deliver Phase 2 as a minimal playable navigation loop using placeholder screens and transitions, without implementing combat, spawning, defenses, or other gameplay systems yet.
+
+Affected areas:
+
+- Design: placeholder run loop UX
+- Code: run state transitions and scene wiring
+- Data: read-only use of existing MVP content ids
+- UI: menu/room/build/wave/reward/victory/defeat placeholder navigation
+- Balance: placeholder round reward application
+- Docs: CR tracking and phase status update
+
+Decision:
+
+Use existing `RunController` and `RunState` to drive state transitions, keep UI thin, and keep gameplay logic out of scene scripts.
+
+Implementation notes:
+
+- Boot opens main menu.
+- Start Run initializes debug seed, character, map and enters ROOM.
+- ROOM -> BUILD_PHASE -> WAVE_RUNNING -> REWARD_SELECTION -> ROOM loop is implemented.
+- Reward selection appends chosen item id to `RunState.picked_item_ids` and increments round.
+- After round 6 reward resolution, flow transitions to VICTORY.
+- DEFEAT placeholder scene remains available for future core_hp-based flow.
+
+Files likely affected:
+
+- `scripts/gameplay/run_controller.gd`
+- `scripts/ui/*`
+- `scenes/boot/boot.tscn`
+- `scenes/menus/main_menu.tscn`
+- `scenes/room/room_hub.tscn`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scenes/ui/reward_screen.tscn`
+- `scenes/ui/victory_screen.tscn`
+- `scenes/ui/defeat_screen.tscn`
+- `docs/codex_tasks.md`
+
+Risks:
+
+- Placeholder navigation can drift from final architecture if extended carelessly.
+- UI-only placeholders may be mistaken for production flow if not documented.
+
+Acceptance criteria:
+
+- Main Menu can start a run.
+- User can navigate Main Menu -> Room -> Build -> Dummy Wave -> Reward -> Room.
+- Round increments after reward choice.
+- Round 6 completion reaches Victory.
+- No enemy/spawn/defense/combat gameplay implemented.
