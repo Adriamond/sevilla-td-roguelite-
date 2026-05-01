@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RoomInteractionDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/room_interaction_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "buscar_monedas_pantalon"
+display_name = "Check Pocket Coins"
+description = "Try to gain small gold."
+display_name_es = "Buscar monedas en er pantalon"
+description_es = "Rasca bolsillos a ver si cae parne."
+success_text_es = "Has rascao unas monedillas, ompare."
+failure_text_es = "Na de na, vas tieso."
+flavor_text_es = "Ritual de barrio version arcade."
+cost_gold = 0
+cost_room_charges = 1
+max_uses_per_run = 2
+max_uses_per_round = 1
+benefit_tags = PackedStringArray("mvp")
+risk_tags = PackedStringArray("resource_spend")
+effect_values = {}

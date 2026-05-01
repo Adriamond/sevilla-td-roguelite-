@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "killo_bulevar_boss"
+display_name = "Killo Bulevar Boss"
+description = "Final boss with summon and burst phases."
+display_name_es = "Er Killo der Bulevar"
+description_es = "Jefe final de ronda 6. Invoca y mete arreones."
+flavor_text_es = "Te via coger der pescuezo, parguela."
+scene_path = "res://scenes/bosses/boss_base.tscn"
+tags = PackedStringArray("ground", "boss", "armored")
+base_hp = 1400.0
+base_speed = 0.85
+base_armor = 2
+leak_damage = 5
+gold_reward = 120
+abilities = PackedStringArray()
+weakness_tags = PackedStringArray("armor_break", "slow", "focus_fire")
+resistance_tags = PackedStringArray("panic_builds")
+is_boss = true
+visual_color_key = "default"

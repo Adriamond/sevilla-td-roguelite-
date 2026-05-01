@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lagrima_negra"
+display_name = "Lagrima Negra"
+description = "Debuffer that weakens nearby defenses."
+display_name_es = "Er Lagrima Negra"
+description_es = "Bicho malaje que baja la cadencia de tus torres."
+flavor_text_es = "Te amarga la olea con su aura, miarma."
+scene_path = "res://scenes/enemies/enemy_base.tscn"
+tags = PackedStringArray("ground", "debuffer", "aura")
+base_hp = 95.0
+base_speed = 0.95
+base_armor = 0
+leak_damage = 1
+gold_reward = 11
+abilities = PackedStringArray()
+weakness_tags = PackedStringArray("burst")
+resistance_tags = PackedStringArray("confusion")
+is_boss = false
+visual_color_key = "default"

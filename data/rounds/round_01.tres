@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="RoundDef" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/round_def.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/defs/wave_step_def.gd" id="2"]
+
+[sub_resource type="Resource" id="WaveStepDef_1"]
+script = ExtResource("2")
+enemy_id = "tactichandal_runner"
+count = 8
+spawn_interval = 1.0
+start_delay = 0.0
+path_id = "main"
+is_elite = false
+
+[resource]
+script = ExtResource("1")
+id = "round_01"
+round_index = 1
+display_name = "Round 1"
+wave_steps = [SubResource("WaveStepDef_1")]
+base_gold_reward = 60
+has_elite = false
+has_boss = false
+boss_enemy_id = ""
+dominant_enemy_tags = PackedStringArray("mvp")
+reward_table_id = "mvp_round_01"

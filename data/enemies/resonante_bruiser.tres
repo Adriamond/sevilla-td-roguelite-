@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "resonante_bruiser"
+display_name = "Resonante Bruiser"
+description = "Armored tank that soaks damage."
+display_name_es = "Metallero Resonante"
+description_es = "Mazacote con chapa dura. Sin rompearmadura, te trinca."
+flavor_text_es = "Llega a zapatazos y no veas como aguanta."
+scene_path = "res://scenes/enemies/enemy_base.tscn"
+tags = PackedStringArray("ground", "tank", "armored")
+base_hp = 180.0
+base_speed = 0.75
+base_armor = 2
+leak_damage = 2
+gold_reward = 14
+abilities = PackedStringArray()
+weakness_tags = PackedStringArray("armor_break", "wet", "dot")
+resistance_tags = PackedStringArray("multi_hit_low")
+is_boss = false
+visual_color_key = "default"

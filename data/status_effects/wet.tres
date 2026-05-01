@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/status_effect_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wet"
+display_name = "Wet"
+description = "Applies soaked state."
+display_name_es = "Mojado"
+description_es = "Empapa al enemigo pa combos."
+duration = 3.0
+stacking_rule = 0
+effect_values = {"wet": true}
+visual_key = "default"

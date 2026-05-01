@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/item_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "montadito_apretado"
+display_name = "montadito apretado"
+description = "MVP placeholder item contract entry."
+display_name_es = "montadito apretado"
+description_es = "Objeto de apoyo pa la run, quillo."
+flavor_text_es = "Movida del barrio pa remontar."
+flavor_text = "MVP placeholder item flavor text."
+rarity = 0
+tags = PackedStringArray("mvp", "item")
+effect_hooks = PackedStringArray("on_reward_pick")
+effect_values = {}
+drawback_description = "None in placeholder contract phase."
+balance_risk = "low"

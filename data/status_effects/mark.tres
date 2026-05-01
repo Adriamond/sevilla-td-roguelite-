@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/status_effect_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mark"
+display_name = "Mark"
+description = "Increases incoming damage."
+display_name_es = "Marcado"
+description_es = "Objetivo senalao: recibe mas cana."
+duration = 2.5
+stacking_rule = 0
+effect_values = {"incoming_damage_mult": 1.2}
+visual_key = "default"

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "clan_loot_summoner"
+display_name = "Clan Loot Summoner"
+description = "Summoner that clutters lanes with decoys."
+display_name_es = "Otakillo del Loot"
+description_es = "Invoca morralla para distraerte y colarte peana."
+flavor_text_es = "Te monta un mercadillo en mitad de la ruta."
+scene_path = "res://scenes/enemies/enemy_base.tscn"
+tags = PackedStringArray("ground", "summoner", "swarm")
+base_hp = 85.0
+base_speed = 1.05
+base_armor = 0
+leak_damage = 1
+gold_reward = 12
+abilities = PackedStringArray()
+weakness_tags = PackedStringArray("aoe", "wall")
+resistance_tags = PackedStringArray("single_target")
+is_boss = false
+visual_color_key = "default"

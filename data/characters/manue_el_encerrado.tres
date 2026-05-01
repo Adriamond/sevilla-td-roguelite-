@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CharacterDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/character_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "manue_el_encerrado"
+display_name = "Manue El Encerrado"
+description = "Starter character focused on controlled setup."
+display_name_es = "Manue er Encerrado"
+description_es = "Currante paciente que aguanta la presion."
+flavor_text_es = "Aqui no se rinde ni el tato, miarma."
+start_gold = 140
+core_hp = 20
+free_rerolls = 1
+active_ability_id = "modo_focus"
+passive_id = "first_defense_discount"
+tags = PackedStringArray("starter")

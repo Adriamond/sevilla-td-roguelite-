@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StatusEffectDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/status_effect_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "silence_like"
+display_name = "Silence-like"
+description = "Disables active abilities briefly."
+display_name_es = "Silencio apanao"
+description_es = "Corta el truquito del enemigo."
+duration = 1.5
+stacking_rule = 0
+effect_values = {"disable_abilities": true}
+visual_key = "default"

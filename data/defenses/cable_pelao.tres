@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="DefenseDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/defense_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cable_pelao"
+display_name = "cable pelao"
+description = "MVP placeholder defense contract entry."
+display_name_es = "cable pelao"
+description_es = "Defensa de contrato MVP con texto local, killo."
+flavor_text_es = "Mete presion de barrio en verda."
+scene_path = "res://scenes/defenses/defense_base.tscn"
+category = 1
+element = 5
+rarity = 0
+base_cost = 55
+base_damage = 12.0
+base_fire_rate = 1.0
+base_range = 72.0
+targeting_mode = "first"
+effect_ids = PackedStringArray()
+upgrade_1_description = "Upgrade 1 placeholder"
+upgrade_2_description = "Upgrade 2 placeholder"
+upgrade_1_description_es = "Mejora 1 placeholder, miarma"
+upgrade_2_description_es = "Mejora 2 placeholder, ompare"
+strong_against_tags = PackedStringArray()
+weak_against_tags = PackedStringArray()
+synergy_tags = PackedStringArray("mvp")
+balance_risk = "low"

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="RoundDef" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/round_def.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/defs/wave_step_def.gd" id="2"]
+
+[sub_resource type="Resource" id="WaveStepDef_1"]
+script = ExtResource("2")
+enemy_id = "resonante_bruiser"
+count = 6
+spawn_interval = 1.8
+start_delay = 0.0
+path_id = "main"
+is_elite = false
+
+[sub_resource type="Resource" id="WaveStepDef_2"]
+script = ExtResource("2")
+enemy_id = "clan_loot_summoner"
+count = 5
+spawn_interval = 1.25
+start_delay = 4.5
+path_id = "main"
+is_elite = false
+
+[resource]
+script = ExtResource("1")
+id = "round_05"
+round_index = 5
+display_name = "Round 5"
+wave_steps = [SubResource("WaveStepDef_1"), SubResource("WaveStepDef_2")]
+base_gold_reward = 120
+has_elite = false
+has_boss = false
+boss_enemy_id = ""
+dominant_enemy_tags = PackedStringArray("mvp")
+reward_table_id = "mvp_round_05"

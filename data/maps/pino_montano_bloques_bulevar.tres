@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MapDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/map_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pino_montano_bloques_bulevar"
+display_name = "Pino Montano Bloques Bulevar"
+description = "Single MVP lane map with fixed paths."
+scene_path = "res://scenes/maps/pino_montano/pino_montano_map.tscn"
+ground_path_ids = PackedStringArray("main")
+air_path_ids = PackedStringArray()
+build_pad_groups = {"air": PackedStringArray(), "ground": PackedStringArray("g1", "g2"), "wall": PackedStringArray("w1")}
+gimmick_id = "bus_crossing_visual"
+music_id = "pino_loop_01"
