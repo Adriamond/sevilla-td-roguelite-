@@ -32,8 +32,13 @@ func _show_room() -> void:
     var room: RoomScreenController = _show_screen(ROOM_SCENE) as RoomScreenController
     if room == null:
         return
+    var run_state: Node = _run_state()
     room.show_room()
-    room.set_status(RunState.current_round, RunState.gold, RunState.core_hp)
+    room.set_status(
+        int(run_state.get("current_round")),
+        int(run_state.get("gold")),
+        int(run_state.get("core_hp"))
+    )
     room.continue_requested.connect(_on_room_continue_requested)
 
 func _show_build_phase() -> void:
@@ -79,7 +84,7 @@ func _show_screen(scene: PackedScene) -> Node:
     return _active_screen
 
 func _on_start_game_requested() -> void:
-    ContentDB.load_all()
+    _content_db().call("load_all")
     _run_controller.start_run(DEBUG_SEED, DEBUG_CHARACTER_ID, DEBUG_MAP_ID)
 
 func _on_quit_requested() -> void:
@@ -92,25 +97,31 @@ func _on_start_dummy_wave_requested() -> void:
     _run_controller.transition_to(RunController.RunStateType.WAVE_RUNNING)
 
 func _on_complete_dummy_wave_requested() -> void:
-    if RunState.core_hp <= 0:
+    var run_state: Node = _run_state()
+    if int(run_state.get("core_hp")) <= 0:
         _run_controller.end_run(false)
         return
 
-    var round_reward_gold: int = 45 + 15 * RunState.current_round
-    RunState.add_gold(round_reward_gold)
+    var current_round: int = int(run_state.get("current_round"))
+    var round_reward_gold: int = 45 + 15 * current_round
+    run_state.call("add_gold", round_reward_gold)
     _run_controller.transition_to(RunController.RunStateType.REWARD_SELECTION)
 
 func _on_reward_chosen(item_id: String) -> void:
     if item_id.is_empty():
         return
-    RunState.picked_item_ids.append(item_id)
+    var run_state: Node = _run_state()
+    var picked_item_ids: Array[String] = run_state.get("picked_item_ids")
+    picked_item_ids.append(item_id)
+    run_state.set("picked_item_ids", picked_item_ids)
 
-    if RunState.current_round >= 6:
+    var current_round: int = int(run_state.get("current_round"))
+    if current_round >= 6:
         _run_controller.end_run(true)
         return
 
-    RunState.current_round += 1
-    RunState.round_changed.emit(RunState.current_round)
+    run_state.set("current_round", current_round + 1)
+    run_state.get("round_changed").emit(int(run_state.get("current_round")))
     _run_controller.transition_to(RunController.RunStateType.ROOM)
 
 func _on_run_state_changed(new_state: RunController.RunStateType) -> void:
@@ -128,8 +139,8 @@ func _on_run_state_changed(new_state: RunController.RunStateType) -> void:
         RunController.RunStateType.DEFEAT:
             _show_defeat()
 
-func _on_run_ended(victory: bool) -> void:
-    _ = victory
+func _on_run_ended(_victory: bool) -> void:
+    pass
 
 func _get_placeholder_reward_ids() -> Array[String]:
     var preferred_ids: Array[String] = [
@@ -140,12 +151,12 @@ func _get_placeholder_reward_ids() -> Array[String]:
     var result: Array[String] = []
 
     for item_id: String in preferred_ids:
-        if ContentDB.get_item(item_id) != null:
+        if _content_db().call("get_item", item_id) != null:
             result.append(item_id)
 
     if result.size() < 3:
         var fallback_ids: Array[String] = []
-        for key: Variant in ContentDB.items.keys():
+        for key: Variant in _content_db().get("items").keys():
             fallback_ids.append(String(key))
         fallback_ids.sort()
         for item_id: String in fallback_ids:
@@ -156,3 +167,9 @@ func _get_placeholder_reward_ids() -> Array[String]:
                 break
 
     return result
+
+func _run_state() -> Node:
+    return get_node("/root/RunState")
+
+func _content_db() -> Node:
+    return get_node("/root/ContentDB")

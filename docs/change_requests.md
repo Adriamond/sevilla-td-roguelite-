@@ -207,6 +207,7 @@ Implementation notes:
 - Reward selection appends chosen item id to `RunState.picked_item_ids` and increments round.
 - After round 6 reward resolution, flow transitions to VICTORY.
 - DEFEAT placeholder scene remains available for future core_hp-based flow.
+- CR-003 stabilization: fixed Godot warnings and verified CR-003 script parse readiness.
 
 Files likely affected:
 

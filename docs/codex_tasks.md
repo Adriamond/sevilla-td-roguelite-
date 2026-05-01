@@ -2,6 +2,14 @@
 
 Use this as the implementation roadmap.
 
+## Validation rule
+
+After changing any `.gd`, `.tscn`, `.tres`, `project.godot`, or validation tool file, run:
+
+- `.\tools\run_validation.ps1`
+
+If it cannot be executed in the current environment, report explicitly that runtime validation was not executed.
+
 ## Phase 0 - Repository bootstrap
 
 Status: current task.

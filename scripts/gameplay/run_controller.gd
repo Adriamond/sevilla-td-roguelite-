@@ -18,7 +18,7 @@ enum RunStateType {
 var current_state: RunStateType = RunStateType.ROOM
 
 func start_run(seed: int, character_id: String, map_id: String) -> void:
-    RunState.reset_run(seed, character_id, map_id)
+    get_node("/root/RunState").call("reset_run", seed, character_id, map_id)
     current_state = RunStateType.ROOM
     run_started.emit()
     state_changed.emit(current_state)
