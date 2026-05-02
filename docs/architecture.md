@@ -120,6 +120,16 @@ A scene should not:
 * decide reward logic
 * own enemy scaling formulas
 
+## Gameplay runtime lifecycle
+
+For gameplay runs, runtime objects have distinct lifecycles:
+
+* `GameplayRoot` is run-lifecycle and must persist for the whole run.
+* `DefenseLayer`, placed defenses and build-pad occupancy are run-lifecycle.
+* `EnemyLayer` is wave-lifecycle and may reset between waves.
+* Room and reward views may overlay/hide gameplay, but must not destroy run-lifecycle objects.
+* Any feature that creates persistent runtime objects must include lifecycle smoke validation.
+
 ## Data loading
 
 `ContentDB` loads content Resources and indexes them by id.

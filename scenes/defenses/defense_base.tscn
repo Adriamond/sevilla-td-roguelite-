@@ -1,2 +1,37 @@
 [gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/defense_actor.gd" id="1"]
+
 [node name="DefenseBase" type="Node2D"]
+script = ExtResource("1")
+
+[node name="RangeCircle" type="Line2D" parent="."]
+unique_name_in_owner = true
+default_color = Color(0.3, 0.85, 1, 0.24)
+width = 2.0
+closed = false
+
+[node name="AttackBeam" type="Line2D" parent="."]
+unique_name_in_owner = true
+default_color = Color(0.46, 0.95, 1, 0.95)
+width = 3.0
+visible = false
+
+[node name="BodyOutline" type="Polygon2D" parent="."]
+color = Color(0, 0, 0, 1)
+polygon = PackedVector2Array(-15, -15, 15, -15, 15, 15, -15, 15)
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.16, 0.78, 1, 1)
+polygon = PackedVector2Array(-11, -11, 11, -11, 11, 11, -11, 11)
+
+[node name="DefenseLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = 14.0
+offset_right = 40.0
+offset_bottom = 30.0
+text = "manguerazo"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.94, 0.97, 1, 1)
+theme_override_font_sizes/font_size = 10

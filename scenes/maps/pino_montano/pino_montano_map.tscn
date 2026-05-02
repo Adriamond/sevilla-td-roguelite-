@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/pino_montano_map_path.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/gameplay/build_pad.gd" id="2"]
 
 [sub_resource type="Curve2D" id="Curve2D_main"]
 _data = {
@@ -8,6 +9,18 @@ _data = {
 "tilts": PackedFloat32Array(),
 "closed": false
 }
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pad_01"]
+radius = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pad_02"]
+radius = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pad_03"]
+radius = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pad_04"]
+radius = 16.0
 
 [node name="PinoMontanoMap" type="Node2D"]
 script = ExtResource("1")
@@ -53,17 +66,56 @@ text = "END"
 theme_override_colors/font_color = Color(1, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 13
 
-[node name="PadPlaceholder1" type="Polygon2D" parent="."]
-color = Color(0.3, 0.38, 0.5, 0.85)
-polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
-position = Vector2(335, 458)
+[node name="BuildPads" type="Node2D" parent="."]
 
-[node name="PadPlaceholder2" type="Polygon2D" parent="."]
-color = Color(0.3, 0.38, 0.5, 0.85)
+[node name="Pad01" type="Area2D" parent="BuildPads"]
+position = Vector2(334, 458)
+script = ExtResource("2")
+pad_category = "ground"
+pad_id = "pad_01"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuildPads/Pad01"]
+shape = SubResource("CircleShape2D_pad_01")
+
+[node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad01"]
+color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="Pad02" type="Area2D" parent="BuildPads"]
 position = Vector2(525, 320)
+script = ExtResource("2")
+pad_category = "ground"
+pad_id = "pad_02"
 
-[node name="PadPlaceholderWall" type="Polygon2D" parent="."]
-color = Color(0.3, 0.38, 0.5, 0.85)
-polygon = PackedVector2Array(-12, -18, 12, -18, 12, 18, -12, 18)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuildPads/Pad02"]
+shape = SubResource("CircleShape2D_pad_02")
+
+[node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad02"]
+color = Color(0.23, 0.68, 0.96, 0.84)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="Pad03" type="Area2D" parent="BuildPads"]
 position = Vector2(760, 220)
+script = ExtResource("2")
+pad_category = "ground"
+pad_id = "pad_03"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuildPads/Pad03"]
+shape = SubResource("CircleShape2D_pad_03")
+
+[node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad03"]
+color = Color(0.23, 0.68, 0.96, 0.84)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="Pad04" type="Area2D" parent="BuildPads"]
+position = Vector2(446, 186)
+script = ExtResource("2")
+pad_category = "ground"
+pad_id = "pad_04"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuildPads/Pad04"]
+shape = SubResource("CircleShape2D_pad_04")
+
+[node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad04"]
+color = Color(0.23, 0.68, 0.96, 0.84)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)

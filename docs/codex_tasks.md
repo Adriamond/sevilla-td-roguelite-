@@ -104,6 +104,8 @@ Acceptance:
 
 ## Phase 4 - Defenses and combat
 
+Status: in progress (CR-007 implemented first minimal slice; CR-007B hardened run-lifecycle gameplay persistence and added minimal combat feedback, still single-defense and no upgrades/selling/shop).
+
 Implement:
 
 * placement

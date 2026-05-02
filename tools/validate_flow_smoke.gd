@@ -4,6 +4,8 @@ const DEBUG_SEED: int = 424242
 const DEBUG_CHARACTER_ID: String = "manue_el_encerrado"
 const DEBUG_MAP_ID: String = "pino_montano_bloques_bulevar"
 
+var _created_nodes: Array[Node] = []
+
 func _init() -> void:
 	call_deferred("_run_validation")
 
@@ -20,7 +22,7 @@ func _run_validation() -> void:
 
 	var run_controller_script: Script = load("res://scripts/gameplay/run_controller.gd")
 	var run_controller: Node = run_controller_script.new()
-	get_root().add_child(run_controller)
+	_track_node(run_controller)
 
 	run_controller.call("start_run", DEBUG_SEED, DEBUG_CHARACTER_ID, DEBUG_MAP_ID)
 	if not _assert_state(run_controller, RunController.RunStateType.ROOM, "ROOM"):
@@ -61,6 +63,12 @@ func _run_validation() -> void:
 	if not _assert_true((run_state.get("picked_item_ids") as Array[String]).has(picked_reward), "Expected picked reward to be stored in RunState."):
 		return
 
+	if not await _validate_runtime_persistence():
+		return
+	if not await _validate_defeat_flow():
+		return
+
+	await _cleanup_created_nodes()
 	print("Flow smoke validation OK.")
 	quit(0)
 
@@ -93,7 +101,7 @@ func _ensure_singleton(node_name: String, script_path: String) -> Node:
 	if instance == null:
 		return null
 	instance.name = node_name
-	get_root().add_child(instance)
+	_track_node(instance)
 	return instance
 
 func _collect_reward_ids(content_db: Node) -> Array[String]:
@@ -106,3 +114,112 @@ func _collect_reward_ids(content_db: Node) -> Array[String]:
 		if content_db.call("get_item", item_id) != null:
 			ids.append(item_id)
 	return ids
+
+func _validate_runtime_persistence() -> bool:
+	var boot_scene: PackedScene = load("res://scenes/boot/boot.tscn")
+	if boot_scene == null:
+		_fail("Could not load boot scene for lifecycle smoke validation.")
+		return false
+
+	var boot: Node = boot_scene.instantiate()
+	if boot == null:
+		_fail("Could not instantiate boot scene for lifecycle smoke validation.")
+		return false
+	get_root().add_child(boot)
+
+	boot.call("_on_start_game_requested")
+	await process_frame
+	boot.call("_on_room_continue_requested")
+	await process_frame
+
+	var gameplay: Node = boot.get("_gameplay_screen")
+	if not _assert_true(gameplay != null, "Expected gameplay runtime to exist in build phase."):
+		return false
+	var wave_controller: Node = gameplay.get("wave_controller")
+	if wave_controller != null:
+		wave_controller.set("use_async_timers", false)
+	if not _assert_true(String(gameplay.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to be Build Phase after Continue."):
+		return false
+	if not _assert_true(bool(gameplay.call("build_debug_first_pad")), "Expected to build one defense in build phase."):
+		return false
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense count=1 after initial build."):
+		return false
+
+	boot.call("_on_start_wave_requested")
+	await process_frame
+	var gameplay_after_wave_start: Node = boot.get("_gameplay_screen")
+	if not _assert_true(gameplay_after_wave_start == gameplay, "Expected gameplay runtime instance to persist into wave phase."):
+		return false
+	if not _assert_true(String(gameplay_after_wave_start.call("get_phase_name")) == "WAVE_RUNNING", "Expected gameplay phase to be Wave Running after wave start."):
+		return false
+	if not _assert_true(int(gameplay_after_wave_start.call("get_defense_count")) == 1, "Expected defense to persist from build to wave."):
+		return false
+
+	boot.call("_on_force_complete_wave_requested")
+	await process_frame
+	boot.call("_on_reward_chosen", "botellin_congelado")
+	await process_frame
+	boot.call("_on_room_continue_requested")
+	await process_frame
+
+	var gameplay_next_round: Node = boot.get("_gameplay_screen")
+	if not _assert_true(gameplay_next_round == gameplay, "Expected gameplay runtime instance to persist into next round build phase."):
+		return false
+	if not _assert_true(String(gameplay_next_round.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to reset to Build Phase in next round."):
+		return false
+	if not _assert_true(int(gameplay_next_round.call("get_defense_count")) == 1, "Expected defense to persist across rounds in same run."):
+		return false
+
+	boot.queue_free()
+	await process_frame
+	return true
+
+func _validate_defeat_flow() -> bool:
+	var boot_scene: PackedScene = load("res://scenes/boot/boot.tscn")
+	if boot_scene == null:
+		_fail("Could not load boot scene for defeat flow validation.")
+		return false
+
+	var boot: Node = boot_scene.instantiate()
+	if boot == null:
+		_fail("Could not instantiate boot scene for defeat flow validation.")
+		return false
+	get_root().add_child(boot)
+
+	boot.call("_on_start_game_requested")
+	await process_frame
+	boot.call("_on_core_depleted")
+	await process_frame
+
+	var run_controller: Node = boot.get("_run_controller")
+	if not _assert_true(run_controller != null, "Expected run controller to exist during defeat flow validation."):
+		return false
+	if not _assert_true(int(run_controller.get("current_state")) == RunController.RunStateType.DEFEAT, "Expected DEFEAT state after core depletion."):
+		return false
+
+	var active_screen: Node = boot.get("_active_screen")
+	if not _assert_true(active_screen != null, "Expected defeat screen to be active after core depletion."):
+		return false
+	if not _assert_true(active_screen is EndScreenController, "Expected active defeat screen controller to be EndScreenController."):
+		return false
+	if not _assert_true(is_instance_valid(boot), "Expected boot instance to remain alive after defeat transition."):
+		return false
+
+	boot.queue_free()
+	await process_frame
+	return true
+
+func _track_node(node: Node) -> void:
+	if node == null:
+		return
+	get_root().add_child(node)
+	_created_nodes.append(node)
+
+func _cleanup_created_nodes() -> void:
+	for i: int in range(_created_nodes.size() - 1, -1, -1):
+		var node: Node = _created_nodes[i]
+		if node == null or not is_instance_valid(node):
+			continue
+		node.queue_free()
+	await process_frame
+	await process_frame

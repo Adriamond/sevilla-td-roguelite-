@@ -53,6 +53,16 @@ If scope and architecture conflict, reduce content. Do not reduce architecture q
 
 ---
 
+## Runtime lifecycle rules
+
+- `GameplayRoot` is run-lifecycle state and must persist for the whole run.
+- `DefenseLayer`, placed defenses and pad occupancy persist across rounds within the same run.
+- `EnemyLayer` is wave-lifecycle and may reset each wave.
+- Room/reward screens may overlay or hide gameplay, but must not destroy run-lifecycle gameplay objects.
+- Changes that add persistent runtime objects must include deterministic lifecycle smoke validation.
+
+---
+
 ## Source of truth documents
 
 Before implementing gameplay, read:

@@ -13,6 +13,8 @@ const DEFEAT_SCENE: PackedScene = preload("res://scenes/ui/defeat_screen.tscn")
 
 var _run_controller: RunController
 var _active_screen: Node = null
+var _gameplay_screen: GameplayRootController = null
+var _overlay_screen: Node = null
 
 func _ready() -> void:
 	_run_controller = RunController.new()
@@ -22,6 +24,7 @@ func _ready() -> void:
 	_show_main_menu()
 
 func _show_main_menu() -> void:
+	_cleanup_run_runtime()
 	var menu: MainMenuController = _show_screen(MAIN_MENU_SCENE) as MainMenuController
 	if menu == null:
 		return
@@ -29,7 +32,9 @@ func _show_main_menu() -> void:
 	menu.quit_requested.connect(_on_quit_requested)
 
 func _show_room() -> void:
-	var room: RoomScreenController = _show_screen(ROOM_SCENE) as RoomScreenController
+	_clear_primary_screen()
+	_set_gameplay_visible(false)
+	var room: RoomScreenController = _show_overlay(ROOM_SCENE) as RoomScreenController
 	if room == null:
 		return
 	var run_state: Node = _run_state()
@@ -42,44 +47,46 @@ func _show_room() -> void:
 	room.continue_requested.connect(_on_room_continue_requested)
 
 func _show_build_phase() -> void:
-	var gameplay_ui: GameplayRootController = _show_screen(GAMEPLAY_SCENE) as GameplayRootController
+	_clear_primary_screen()
+	_clear_overlay()
+	var gameplay_ui: GameplayRootController = _get_or_create_gameplay_screen()
 	if gameplay_ui == null:
 		return
 	var round_def: Resource = _get_current_round_def()
-	gameplay_ui.prepare_round(round_def)
+	gameplay_ui.prepare_for_round(round_def)
 	gameplay_ui.show_build_phase()
-	gameplay_ui.start_wave_requested.connect(_on_start_wave_requested)
-	gameplay_ui.force_complete_wave_requested.connect(_on_force_complete_wave_requested)
-	gameplay_ui.wave_completed.connect(_on_wave_completed)
-	gameplay_ui.core_depleted.connect(_on_core_depleted)
+	_set_gameplay_visible(true)
 
 func _show_wave_running() -> void:
-	var gameplay_ui: GameplayRootController = _show_screen(GAMEPLAY_SCENE) as GameplayRootController
+	_clear_primary_screen()
+	_clear_overlay()
+	var gameplay_ui: GameplayRootController = _get_or_create_gameplay_screen()
 	if gameplay_ui == null:
 		return
-	var round_def: Resource = _get_current_round_def()
-	gameplay_ui.prepare_round(round_def)
-	gameplay_ui.show_wave_running()
 	gameplay_ui.start_wave()
-	gameplay_ui.start_wave_requested.connect(_on_start_wave_requested)
-	gameplay_ui.force_complete_wave_requested.connect(_on_force_complete_wave_requested)
-	gameplay_ui.wave_completed.connect(_on_wave_completed)
-	gameplay_ui.core_depleted.connect(_on_core_depleted)
+	if gameplay_ui.get_phase_name() != "WAVE_RUNNING":
+		_run_controller.enter_build_phase()
+		return
+	_set_gameplay_visible(true)
 
 func _show_reward_selection() -> void:
-	var reward_screen: RewardScreenController = _show_screen(REWARD_SCENE) as RewardScreenController
+	_clear_primary_screen()
+	_set_gameplay_visible(false)
+	var reward_screen: RewardScreenController = _show_overlay(REWARD_SCENE) as RewardScreenController
 	if reward_screen == null:
 		return
 	reward_screen.show_rewards(_get_placeholder_reward_ids())
 	reward_screen.reward_chosen.connect(_on_reward_chosen)
 
 func _show_victory() -> void:
+	_cleanup_run_runtime()
 	var victory_screen: EndScreenController = _show_screen(VICTORY_SCENE) as EndScreenController
 	if victory_screen == null:
 		return
 	victory_screen.back_to_menu_requested.connect(_show_main_menu)
 
 func _show_defeat() -> void:
+	_cleanup_run_runtime()
 	var defeat_screen: EndScreenController = _show_screen(DEFEAT_SCENE) as EndScreenController
 	if defeat_screen == null:
 		return
@@ -94,6 +101,11 @@ func _show_screen(scene: PackedScene) -> Node:
 
 func _on_start_game_requested() -> void:
 	_content_db().call("load_all")
+	_cleanup_run_runtime()
+	var gameplay_ui: GameplayRootController = _get_or_create_gameplay_screen()
+	if gameplay_ui != null:
+		gameplay_ui.reset_run_runtime()
+	_set_gameplay_visible(false)
 	_run_controller.start_run(DEBUG_SEED, DEBUG_CHARACTER_ID, DEBUG_MAP_ID)
 
 func _on_quit_requested() -> void:
@@ -106,7 +118,7 @@ func _on_start_wave_requested() -> void:
 	_run_controller.start_current_wave()
 
 func _on_force_complete_wave_requested() -> void:
-	var gameplay_ui: GameplayRootController = _active_screen as GameplayRootController
+	var gameplay_ui: GameplayRootController = _gameplay_screen
 	if gameplay_ui == null:
 		return
 	gameplay_ui.force_complete_wave()
@@ -137,6 +149,47 @@ func _on_run_state_changed(new_state: RunController.RunStateType) -> void:
 
 func _on_run_ended(_victory: bool) -> void:
 	pass
+
+func _get_or_create_gameplay_screen() -> GameplayRootController:
+	if _gameplay_screen != null and is_instance_valid(_gameplay_screen):
+		return _gameplay_screen
+
+	_gameplay_screen = GAMEPLAY_SCENE.instantiate() as GameplayRootController
+	if _gameplay_screen == null:
+		return null
+	add_child(_gameplay_screen)
+	_gameplay_screen.start_wave_requested.connect(_on_start_wave_requested)
+	_gameplay_screen.force_complete_wave_requested.connect(_on_force_complete_wave_requested)
+	_gameplay_screen.wave_completed.connect(_on_wave_completed)
+	_gameplay_screen.core_depleted.connect(_on_core_depleted)
+	return _gameplay_screen
+
+func _show_overlay(scene: PackedScene) -> Node:
+	_clear_overlay()
+	_overlay_screen = scene.instantiate()
+	add_child(_overlay_screen)
+	return _overlay_screen
+
+func _clear_overlay() -> void:
+	if _overlay_screen != null and is_instance_valid(_overlay_screen):
+		_overlay_screen.queue_free()
+	_overlay_screen = null
+
+func _set_gameplay_visible(value: bool) -> void:
+	if _gameplay_screen == null or not is_instance_valid(_gameplay_screen):
+		return
+	_gameplay_screen.visible = value
+
+func _cleanup_run_runtime() -> void:
+	_clear_overlay()
+	if _gameplay_screen != null and is_instance_valid(_gameplay_screen):
+		_gameplay_screen.queue_free()
+	_gameplay_screen = null
+
+func _clear_primary_screen() -> void:
+	if _active_screen != null and is_instance_valid(_active_screen):
+		_active_screen.queue_free()
+	_active_screen = null
 
 func _get_placeholder_reward_ids() -> Array[String]:
 	var preferred_ids: Array[String] = [

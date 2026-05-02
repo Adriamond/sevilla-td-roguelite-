@@ -4,11 +4,13 @@ class_name EnemyActor
 
 signal reached_end(enemy_id: String, leak_damage: int)
 signal removed_from_wave(enemy_id: String)
+signal died(enemy_id: String)
 
 const SPEED_SCALE: float = 95.0
 
 var enemy_id: String = ""
 var hp: float = 1.0
+var current_hp: float = 1.0
 var speed: float = 1.0
 var leak_damage: int = 1
 
@@ -19,15 +21,22 @@ var _path_points: PackedVector2Array = PackedVector2Array()
 var _already_reached_end: bool = false
 
 @onready var type_label: Label = get_node_or_null("%TypeLabel")
+@onready var body_polygon: Polygon2D = get_node_or_null("%Body")
+@onready var health_bar: ProgressBar = get_node_or_null("%HealthBar")
+
+var _default_body_color: Color = Color(1, 0.22, 0.35, 1)
+var _hit_flash_timer: float = 0.0
 
 func setup_from_def(enemy_def: Resource, path: Path2D, is_elite: bool = false) -> void:
 	enemy_id = String(enemy_def.get("id"))
 	hp = float(enemy_def.get("base_hp"))
+	current_hp = hp
 	speed = float(enemy_def.get("base_speed"))
 	leak_damage = int(enemy_def.get("leak_damage"))
 
 	if is_elite:
 		hp *= 2.2
+		current_hp = hp
 		scale = Vector2(1.25, 1.25)
 
 	_path = path
@@ -39,6 +48,11 @@ func setup_from_def(enemy_def: Resource, path: Path2D, is_elite: bool = false) -
 	z_index = 50
 	if type_label != null:
 		type_label.text = "%s 0%%" % _short_enemy_id(enemy_id)
+	if body_polygon != null:
+		_default_body_color = body_polygon.color
+	if health_bar != null:
+		health_bar.max_value = hp
+		health_bar.value = current_hp
 	_update_position()
 
 func _process(delta: float) -> void:
@@ -46,6 +60,10 @@ func _process(delta: float) -> void:
 		return
 	if _path_length <= 0.0:
 		return
+	if _hit_flash_timer > 0.0:
+		_hit_flash_timer = max(0.0, _hit_flash_timer - delta)
+		if _hit_flash_timer <= 0.0 and body_polygon != null:
+			body_polygon.color = _default_body_color
 
 	_distance_travelled += max(speed, 0.0) * SPEED_SCALE * delta
 	if _distance_travelled >= _path_length:
@@ -70,6 +88,31 @@ func _update_position() -> void:
 
 func _exit_tree() -> void:
 	removed_from_wave.emit(enemy_id)
+
+func apply_damage(amount: float) -> bool:
+	if amount <= 0.0:
+		return false
+	current_hp = max(0.0, current_hp - amount)
+	if health_bar != null:
+		health_bar.max_value = hp
+		health_bar.value = current_hp
+	if body_polygon != null:
+		body_polygon.color = Color(1.0, 1.0, 1.0, 1.0)
+		_hit_flash_timer = 0.08
+	if current_hp > 0.0:
+		return false
+	if not _already_reached_end:
+		died.emit(enemy_id)
+		queue_free()
+	return true
+
+func is_alive() -> bool:
+	return current_hp > 0.0 and not _already_reached_end
+
+func get_progress_ratio() -> float:
+	if _path_length <= 0.0:
+		return 0.0
+	return clamp(_distance_travelled / _path_length, 0.0, 1.0)
 
 func _short_enemy_id(value: String) -> String:
 	if value.is_empty():

@@ -12,36 +12,54 @@ signal core_depleted
 @onready var action_button: Button = %PhaseActionButton
 @onready var force_complete_button: Button = %ForceCompleteButton
 @onready var core_hp_label: Label = %CoreHPValueLabel
+@onready var gold_label: Label = %GoldValueLabel
 @onready var active_enemies_label: Label = %ActiveEnemiesValueLabel
 @onready var spawned_enemies_label: Label = %SpawnedEnemiesValueLabel
 @onready var leaked_enemies_label: Label = %LeakedEnemiesValueLabel
 @onready var viewport_label: Label = %ViewportValueLabel
 @onready var camera_zoom_label: Label = %CameraZoomValueLabel
 @onready var window_size_label: Label = %WindowSizeValueLabel
+@onready var build_hint_label: Label = %BuildHintLabel
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
+@onready var defense_layer: Node2D = %DefenseLayer
 @onready var path_controller: PathController = %PathController
 @onready var spawn_controller: SpawnController = %SpawnController
 @onready var wave_controller: WaveController = %WaveController
+@onready var defense_controller: DefenseController = %DefenseController
 
 var _is_wave_running: bool = false
+var _phase_name: String = "BUILD_PHASE"
 var _map_instance: Node2D = null
 var _active_round_def: Resource = null
 var _spawned_count: int = 0
 var _leaked_count: int = 0
+var _build_defense_id: String = "manguerazo"
+var _core_depleted_emitted: bool = false
 
 func show_build_phase() -> void:
 	_is_wave_running = false
+	_phase_name = "BUILD_PHASE"
+	end_wave_cleanup()
 	phase_label.text = "Build Phase"
 	action_button.text = "Start Wave"
+	action_button.disabled = false
 	force_complete_button.visible = false
+	force_complete_button.disabled = true
+	_set_build_pads_enabled(true)
+	build_hint_label.text = "Click pad to build manguerazo"
 	_update_status_labels()
 
 func show_wave_running() -> void:
 	_is_wave_running = true
+	_phase_name = "WAVE_RUNNING"
 	phase_label.text = "Wave Running"
 	action_button.text = "Wave Running..."
+	action_button.disabled = true
 	force_complete_button.visible = true
+	force_complete_button.disabled = false
+	_set_build_pads_enabled(false)
+	build_hint_label.text = "Build disabled during wave"
 	_update_status_labels()
 
 func request_phase_action() -> void:
@@ -55,29 +73,97 @@ func request_force_complete() -> void:
 	force_complete_wave_requested.emit()
 
 func prepare_round(round_def: Resource) -> void:
+	prepare_for_round(round_def)
+
+func prepare_for_round(round_def: Resource) -> void:
 	_active_round_def = round_def
 	_ensure_map_loaded()
 	_update_status_labels()
 
 func start_wave() -> void:
 	if _active_round_def == null:
+		build_hint_label.text = "Cannot start wave: missing round data"
+		show_build_phase()
+		return
+	_ensure_map_loaded()
+	if path_controller.get_path_node("main") == null:
+		build_hint_label.text = "Cannot start wave: path not ready"
+		show_build_phase()
 		return
 	_spawned_count = 0
 	_leaked_count = 0
-	_is_wave_running = true
+	_core_depleted_emitted = false
+	_clear_enemy_layer()
+	var started: bool = wave_controller.start_round(_active_round_def)
+	if not started:
+		build_hint_label.text = "Cannot start wave: controller rejected start"
+		show_build_phase()
+		return
 	show_wave_running()
-	wave_controller.start_round(_active_round_def)
 
 func force_complete_wave() -> void:
-	wave_controller.debug_force_complete()
+	if not _is_wave_running or not wave_controller.is_running():
+		return
+	var completed: bool = wave_controller.debug_force_complete()
+	if not completed:
+		build_hint_label.text = "Force complete unavailable"
+
+func end_wave_cleanup() -> void:
+	_clear_enemy_layer()
+
+func set_interactive_build_enabled(enabled: bool) -> void:
+	_set_build_pads_enabled(enabled)
+	if enabled:
+		build_hint_label.text = "Click pad to build manguerazo"
+		return
+	build_hint_label.text = "Build disabled during wave"
+
+func reset_run_runtime() -> void:
+	_is_wave_running = false
+	_phase_name = "BUILD_PHASE"
+	_spawned_count = 0
+	_leaked_count = 0
+	_active_round_def = null
+	_core_depleted_emitted = false
+	_clear_enemy_layer()
+	_clear_defense_layer()
+	if defense_controller != null:
+		defense_controller.reset_run_runtime()
+	_set_build_pads_enabled(false)
+	_update_status_labels()
+
+func get_defense_count() -> int:
+	if defense_layer == null:
+		return 0
+	return defense_layer.get_child_count()
+
+func build_debug_first_pad() -> bool:
+	if _map_instance == null:
+		_ensure_map_loaded()
+	if _map_instance == null:
+		return false
+	var pads_root: Node = _map_instance.get_node_or_null("BuildPads")
+	if pads_root == null:
+		return false
+	for child: Node in pads_root.get_children():
+		var pad: Area2D = child as Area2D
+		if pad == null:
+			continue
+		var built: bool = defense_controller.build_defense(_build_defense_id, pad, String(pad.get("pad_category")))
+		if built:
+			_update_status_labels()
+			return true
+	return false
 
 func _ready() -> void:
 	spawn_controller.configure(enemy_layer, path_controller)
 	wave_controller.configure(spawn_controller)
+	defense_controller.configure(defense_layer, wave_controller)
 	wave_controller.wave_completed.connect(_on_wave_completed)
 	wave_controller.enemy_leaked.connect(_on_enemy_leaked)
 	wave_controller.enemy_spawned.connect(_on_enemy_spawned)
 	wave_controller.active_enemy_count_changed.connect(_on_active_enemy_count_changed)
+	defense_controller.build_failed.connect(_on_build_failed)
 	_center_camera()
 	_update_status_labels()
 
@@ -104,6 +190,7 @@ func _ensure_map_loaded() -> void:
 		return
 
 	map_container.add_child(_map_instance)
+	_connect_build_pads()
 	path_controller.clear_paths()
 	var main_path: Path2D = _map_instance.get_node_or_null("MainPath")
 	if main_path != null:
@@ -117,6 +204,8 @@ func _center_camera() -> void:
 
 func _on_wave_completed(_round_index: int) -> void:
 	_is_wave_running = false
+	_phase_name = "BUILD_PHASE"
+	end_wave_cleanup()
 	wave_completed.emit()
 
 func _on_enemy_leaked(_enemy_id: String, leak_damage: int) -> void:
@@ -124,7 +213,8 @@ func _on_enemy_leaked(_enemy_id: String, leak_damage: int) -> void:
 	var run_state: Node = get_node("/root/RunState")
 	run_state.call("damage_core", leak_damage)
 	_update_status_labels()
-	if bool(run_state.call("is_defeated")):
+	if bool(run_state.call("is_defeated")) and not _core_depleted_emitted:
+		_core_depleted_emitted = true
 		core_depleted.emit()
 
 func _on_enemy_spawned(_enemy_id: String) -> void:
@@ -134,10 +224,48 @@ func _on_enemy_spawned(_enemy_id: String) -> void:
 func _on_active_enemy_count_changed(_value: int) -> void:
 	_update_status_labels()
 
+func _on_pad_clicked(pad: Area2D) -> void:
+	if _is_wave_running:
+		build_hint_label.text = "Cannot build while wave is running"
+		return
+	if pad == null:
+		return
+
+	var pad_category: String = String(pad.get("pad_category"))
+	var pad_id: String = String(pad.get("pad_id"))
+	var built: bool = defense_controller.build_defense(_build_defense_id, pad, pad_category)
+	if built:
+		build_hint_label.text = "Built manguerazo on %s" % pad_id
+		_update_status_labels()
+
+func _on_build_failed(reason: String) -> void:
+	match reason:
+		"not_enough_gold":
+			build_hint_label.text = "Not enough gold"
+		"cannot_build":
+			build_hint_label.text = "Pad occupied or invalid"
+		_:
+			build_hint_label.text = "Build failed: %s" % reason
+
+func _connect_build_pads() -> void:
+	if _map_instance == null:
+		return
+	var pads_root: Node = _map_instance.get_node_or_null("BuildPads")
+	if pads_root == null:
+		return
+	for child: Node in pads_root.get_children():
+		var pad: Area2D = child as Area2D
+		if pad == null or not pad.has_signal("pad_clicked"):
+			continue
+		if not pad.is_connected("pad_clicked", _on_pad_clicked):
+			pad.connect("pad_clicked", _on_pad_clicked)
+	_set_build_pads_enabled(not _is_wave_running)
+
 func _update_status_labels() -> void:
 	var run_state: Node = get_node("/root/RunState")
 	round_label.text = str(int(run_state.get("current_round")))
 	core_hp_label.text = str(int(run_state.get("core_hp")))
+	gold_label.text = str(int(run_state.get("gold")))
 	active_enemies_label.text = str(wave_controller.get_active_enemy_count())
 	spawned_enemies_label.text = str(_spawned_count)
 	leaked_enemies_label.text = str(_leaked_count)
@@ -147,3 +275,30 @@ func _update_status_labels() -> void:
 	camera_zoom_label.text = "x%.2f y%.2f" % [camera.zoom.x, camera.zoom.y] if camera != null else "N/A"
 	var window_size: Vector2i = DisplayServer.window_get_size()
 	window_size_label.text = "%dx%d" % [window_size.x, window_size.y]
+
+func _clear_enemy_layer() -> void:
+	if enemy_layer == null:
+		return
+	for child: Node in enemy_layer.get_children():
+		child.queue_free()
+
+func _clear_defense_layer() -> void:
+	if defense_layer == null:
+		return
+	for child: Node in defense_layer.get_children():
+		child.queue_free()
+
+func _set_build_pads_enabled(enabled: bool) -> void:
+	if _map_instance == null:
+		return
+	var pads_root: Node = _map_instance.get_node_or_null("BuildPads")
+	if pads_root == null:
+		return
+	for child: Node in pads_root.get_children():
+		var pad: Area2D = child as Area2D
+		if pad == null:
+			continue
+		pad.input_pickable = enabled
+
+func get_phase_name() -> String:
+	return _phase_name

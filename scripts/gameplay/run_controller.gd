@@ -16,6 +16,7 @@ enum RunStateType {
 }
 
 var current_state: RunStateType = RunStateType.ROOM
+var _run_finished: bool = false
 const ROUND_SEQUENCE: Array[String] = [
 	"round_01",
 	"round_02",
@@ -27,6 +28,7 @@ const ROUND_SEQUENCE: Array[String] = [
 
 func start_run(seed: int, character_id: String, map_id: String) -> void:
 	_run_state().call("reset_run", seed, character_id, map_id)
+	_run_finished = false
 	current_state = RunStateType.ROOM
 	run_started.emit()
 	state_changed.emit(current_state)
@@ -38,9 +40,13 @@ func enter_build_phase() -> void:
 	transition_to(RunStateType.BUILD_PHASE)
 
 func start_current_wave() -> void:
+	if _run_finished:
+		return
 	transition_to(RunStateType.WAVE_RUNNING)
 
 func handle_wave_completed() -> void:
+	if _run_finished:
+		return
 	if bool(_run_state().call("is_defeated")):
 		handle_core_depleted()
 		return
@@ -48,9 +54,13 @@ func handle_wave_completed() -> void:
 	transition_to(RunStateType.REWARD_SELECTION)
 
 func handle_core_depleted() -> void:
+	if _run_finished:
+		return
 	end_run(false)
 
 func accept_reward(item_id: String) -> void:
+	if _run_finished:
+		return
 	if item_id.is_empty():
 		return
 	if _content_db().call("get_item", item_id) == null:
@@ -90,10 +100,15 @@ func is_final_round() -> bool:
 	return int(_run_state().get("current_round")) >= ROUND_SEQUENCE.size()
 
 func transition_to(new_state: RunStateType) -> void:
+	if _run_finished and new_state != RunStateType.VICTORY and new_state != RunStateType.DEFEAT:
+		return
 	current_state = new_state
 	state_changed.emit(current_state)
 
 func end_run(victory: bool) -> void:
+	if _run_finished:
+		return
+	_run_finished = true
 	current_state = RunStateType.VICTORY if victory else RunStateType.DEFEAT
 	run_ended.emit(victory)
 	state_changed.emit(current_state)

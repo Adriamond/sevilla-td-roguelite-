@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/gameplay_root_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/gameplay/path_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/gameplay/spawn_controller.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/gameplay/wave_controller.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/gameplay/defense_controller.gd" id="5"]
 
 [node name="GameplayRoot" type="Node2D"]
 script = ExtResource("1")
@@ -19,6 +20,10 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 z_index = 20
 
+[node name="DefenseLayer" type="Node2D" parent="."]
+unique_name_in_owner = true
+z_index = 25
+
 [node name="Systems" type="Node" parent="."]
 
 [node name="PathController" type="Node" parent="Systems"]
@@ -32,6 +37,10 @@ script = ExtResource("3")
 [node name="WaveController" type="Node" parent="Systems"]
 unique_name_in_owner = true
 script = ExtResource("4")
+
+[node name="DefenseController" type="Node" parent="Systems"]
+unique_name_in_owner = true
+script = ExtResource("5")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
@@ -69,6 +78,15 @@ theme_override_font_sizes/font_size = 11
 [node name="CoreHPValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
 unique_name_in_owner = true
 text = "20"
+theme_override_font_sizes/font_size = 11
+
+[node name="GoldLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Gold:"
+theme_override_font_sizes/font_size = 11
+
+[node name="GoldValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "0"
 theme_override_font_sizes/font_size = 11
 
 [node name="ActiveEnemiesLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
@@ -124,6 +142,11 @@ theme_override_font_sizes/font_size = 11
 unique_name_in_owner = true
 text = "N/A"
 theme_override_font_sizes/font_size = 11
+
+[node name="BuildHintLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "Click pad to build manguerazo"
+theme_override_font_sizes/font_size = 10
 
 [node name="PhaseActionButton" type="Button" parent="UILayer/DebugPanel/VBoxContainer"]
 unique_name_in_owner = true

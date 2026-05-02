@@ -576,3 +576,290 @@ Acceptance criteria:
 - Core HP still decreases on leak and wave flow reaches reward selection.
 - Existing validations and CR-005 smoke flow remain passing.
 - No new gameplay scope (towers/combat) introduced.
+
+---
+
+## CR-007 - Single basic defense placement and targeting
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Add the first playable tower-defense slice: click pads to place one basic defense, spend gold, target enemies, deal damage, and allow kills before leaks.
+
+Affected areas:
+
+- Design: first minimal combat-ready pre-shop gameplay slice
+- Code: build pad interaction, defense placement, targeting, enemy damage/death, wave lifecycle compatibility
+- Data: existing `manguerazo` DefenseDef only
+- UI: gameplay debug HUD now includes gold/build hints
+- Balance: debug-level first-pass tuning only
+- Docs: CR/task tracking update
+
+Decision:
+
+Implement only one defense path (`manguerazo`) with pad-click placement and simple targeting (most progressed enemy in range), while explicitly deferring upgrades/selling/shop/elements/status/armor systems.
+
+Implementation notes:
+
+- Added clickable build pads on Pino Montano map (ground category).
+- Added `DefenseController` runtime build flow with:
+  - category compatibility check
+  - pad occupancy check
+  - `RunState.spend_gold()` spending
+  - defense scene instantiation/configuration
+- Added `DefenseActor` with basic stats from `DefenseDef`:
+  - damage, range, fire rate, targeting mode
+  - attacks enemies in range using cooldown
+- Added minimal `BuildPad` script for click signal routing.
+- Upgraded `TargetingService` to support most-progressed target selection.
+- Updated `EnemyActor` with `current_hp`, `apply_damage`, `died`, `is_alive`, and progress getter.
+- Wave lifecycle remains compatible: enemies removed by leak or death reduce active count and wave completes when active reaches zero after spawns end.
+- Added project validation checks for defense actor init (`manguerazo`) and enemy kill via `apply_damage`.
+
+Files likely affected:
+
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/gameplay/defense_actor.gd`
+- `scripts/gameplay/build_pad.gd`
+- `scripts/gameplay/targeting_service.gd`
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scenes/maps/pino_montano/pino_montano_map.tscn`
+- `scenes/defenses/defense_base.tscn`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+- `docs/codex_tasks.md`
+
+Risks:
+
+- This is an MVP debug slice and may require tuning once multiple defenses/upgrade systems are added.
+
+Acceptance criteria:
+
+- Single defense (`manguerazo`) can be placed on click pads by spending gold.
+- Defense attacks and can kill enemies before leak.
+- Wave/reward flow remains intact.
+- No upgrades, no selling, no full shop UI, no elements/synergies/status/armor logic introduced.
+
+---
+
+## CR-007B - Preserve run-lifecycle gameplay runtime and add minimal combat feedback
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Fix defense loss by preserving gameplay runtime for the whole run, and add minimal visual combat feedback for manual verification.
+
+Affected areas:
+
+- Design: runtime lifecycle stabilization before expanding defense mechanics
+- Code: boot/gameplay lifecycle routing, defense persistence, combat debug feedback
+- Data: no content schema/id changes
+- UI: room/reward overlay behavior while gameplay runtime persists
+- Balance: no scope expansion beyond single-defense MVP slice
+- Docs: lifecycle governance and CR tracking update
+
+Decision:
+
+Treat `GameplayRoot`, `DefenseLayer` and pad occupancy as run-lifecycle state. Keep gameplay instance alive across build/wave/reward/room transitions during the same run. Add lightweight enemy health/hit feedback and defense shot beam for observability.
+
+Implementation notes:
+
+- `boot_controller` now keeps one gameplay runtime instance for the run and uses overlay screens for room/reward.
+- Gameplay runtime is cleaned only on new run start/menu/victory/defeat cleanup.
+- `GameplayRootController` exposes lifecycle helpers (`prepare_for_round`, `reset_run_runtime`, `end_wave_cleanup`) and keeps defense state across rounds.
+- `DefenseController` occupancy now persists during run and resets only per run.
+- Added enemy health bar + hit flash and defense short beam feedback.
+- Extended flow smoke validation with lifecycle persistence checks:
+  - build -> wave defense persistence
+  - reward/room/next-build defense persistence in same run
+
+Files likely affected:
+
+- `scripts/ui/boot_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/gameplay/defense_actor.gd`
+- `scenes/enemies/enemy_base.tscn`
+- `scenes/defenses/defense_base.tscn`
+- `tools/validate_flow_smoke.gd`
+- `docs/architecture.md`
+- `AGENTS.md`
+- `docs/change_requests.md`
+
+Risks:
+
+- Overlay layering may require later polish for full UX.
+- Debug visuals are intentionally temporary and may need retuning once more defense systems are added.
+
+Acceptance criteria:
+
+- Build -> Wave keeps placed defense alive.
+- Reward -> Room -> next Build keeps placed defense alive in same run.
+- Minimal hit/shot feedback is visible.
+- Existing run/reward flow and validations remain passing.
+- No upgrades/selling/shop/elements/status/armor scope added.
+
+---
+
+## CR-007C - Fix gameplay phase UI state and build/wave flow robustness
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Prevent incoherent gameplay phase states (especially stale Wave Running UI with no active wave) and harden room/build/wave/reward transitions.
+
+Affected areas:
+
+- Design: phase-state consistency and anti-stuck runtime behavior
+- Code: boot/gameplay phase guards, wave start guards, force-complete guards
+- Data: no schema/id changes
+- UI: explicit phase-aligned controls and build-pad interactivity
+- Balance: no gameplay-scope expansion
+- Docs: CR tracking update
+
+Decision:
+
+Make phase transitions state-driven and guarded: Wave Running can only be shown after a successful wave start. If wave start preconditions fail, recover to Build Phase and keep controls coherent.
+
+Implementation notes:
+
+- Added robust wave start checks (round data, path readiness, wave start success).
+- Added gameplay phase reporting (`get_phase_name`) and boot-side recovery to Build Phase if start fails.
+- Ensured Build Phase and Wave Running controls/buttons/pad interactivity are always coherent.
+- Restricted Force Complete to active running waves only.
+- Extended flow smoke validation with explicit phase assertions across:
+  - room -> build
+  - build -> wave
+  - wave complete -> reward -> room -> next build
+- Defense persistence and combat feedback remain intact.
+
+Files likely affected:
+
+- `scripts/ui/boot_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/gameplay/wave_controller.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal: stricter guards may surface existing latent setup errors sooner (desired for robustness).
+
+Acceptance criteria:
+
+- No dead Wave Running UI with zero wave activity before a valid wave start.
+- Room -> Continue always yields Build Phase.
+- Build/Wave controls and build-pad interactivity match phase.
+- Reward -> Room -> Continue resets to Build Phase.
+- Existing persistence and attack feedback remain functioning.
+
+---
+
+## CR-007D - Validation cleanup: investigate Godot shutdown leak warnings
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Eliminate or reduce non-fatal shutdown leak warnings in validation output by fixing real cleanup causes instead of suppressing logs.
+
+Affected areas:
+
+- Design: validation reliability/readability
+- Code: flow smoke validation runtime behavior
+- Data: no schema/id changes
+- UI: none
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep warnings visible and investigate root cause. Fix underlying source in validation path by preventing long-lived SceneTreeTimer awaits during headless smoke runs.
+
+Implementation notes:
+
+- Isolated warning source to `validate_flow_smoke.gd`.
+- Verbose inspection showed leaked `SceneTreeTimer` plus `WaveStepDef` resources held by async wave-spawn await path during early quit.
+- Added deterministic test-mode switch in `WaveController`:
+  - `use_async_timers` (default `true` for normal gameplay)
+  - smoke validation sets it to `false` to avoid timer-await leaks while preserving flow checks.
+- Kept validation semantics intact and did not hide/suppress stderr output.
+- Full `run_validation.ps1` output is now clean (no shutdown leak warnings).
+
+Files likely affected:
+
+- `scripts/gameplay/wave_controller.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal: test-only flag could be misused if toggled outside validation. Default behavior remains unchanged.
+
+Acceptance criteria:
+
+- Validation runner still passes all checks.
+- Shutdown leak warnings removed from validation output.
+- No gameplay behavior changes.
+
+---
+
+## CR-007E - Show Defeat screen on core depletion instead of closing game
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+When Core HP reaches 0, transition to Defeat UI instead of closing the application window.
+
+Affected areas:
+
+- Design: defeat flow reliability
+- Code: defeat transition guards and deterministic defeat smoke coverage
+- Data: no schema/id changes
+- UI: defeat screen routing and runtime teardown behavior
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep quit behavior exclusive to Main Menu Quit action, and harden defeat transitions so core depletion can only end a run once and always routes to Defeat state/screen without app termination.
+
+Implementation notes:
+
+- Added run-finished guards in `RunController` to prevent duplicate `end_run`/state transitions after defeat or victory.
+- Added one-shot core-depleted emission guard in `GameplayRootController` to avoid duplicate defeat triggering from repeated leaks.
+- Extended `validate_flow_smoke.gd` with a deterministic defeat path:
+  - start run
+  - trigger core depletion transition
+  - assert `RunController` enters `DEFEAT`
+  - assert defeat screen controller is active and app tree remains alive
+- No new gameplay systems were added.
+
+Files likely affected:
+
+- `scripts/gameplay/run_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal; tighter guards may surface hidden caller-order issues earlier, which is desirable.
+
+Acceptance criteria:
+
+- Core depletion shows Defeat screen and does not quit app.
+- Main Menu Quit still exits the app.
+- Validation suite remains passing.

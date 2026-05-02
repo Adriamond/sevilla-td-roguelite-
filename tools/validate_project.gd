@@ -9,7 +9,8 @@ const SCENE_SPECS: Array[Dictionary] = [
 	{"scene": "res://scenes/ui/victory_screen.tscn", "root_script": "res://scripts/ui/end_screen_controller.gd"},
 	{"scene": "res://scenes/ui/defeat_screen.tscn", "root_script": "res://scripts/ui/end_screen_controller.gd"},
 	{"scene": "res://scenes/maps/pino_montano/pino_montano_map.tscn", "root_script": ""},
-	{"scene": "res://scenes/enemies/enemy_base.tscn", "root_script": "res://scripts/gameplay/enemy_actor.gd"}
+	{"scene": "res://scenes/enemies/enemy_base.tscn", "root_script": "res://scripts/gameplay/enemy_actor.gd"},
+	{"scene": "res://scenes/defenses/defense_base.tscn", "root_script": "res://scripts/gameplay/defense_actor.gd"}
 ]
 
 func _init() -> void:
@@ -47,20 +48,23 @@ func _init() -> void:
 
 	var map_scene: PackedScene = load("res://scenes/maps/pino_montano/pino_montano_map.tscn")
 	var enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
-	if map_scene == null or enemy_scene == null:
-		print("Project validation failed: map/enemy scene load check failed.")
+	var defense_scene: PackedScene = load("res://scenes/defenses/defense_base.tscn")
+	if map_scene == null or enemy_scene == null or defense_scene == null:
+		print("Project validation failed: map/enemy/defense scene load check failed.")
 		quit(1)
 		return
 
 	var map_instance: Node2D = map_scene.instantiate() as Node2D
 	var enemy_instance: Node2D = enemy_scene.instantiate() as Node2D
-	if map_instance == null or enemy_instance == null:
-		print("Project validation failed: map/enemy instantiate check failed.")
+	var defense_instance: Node2D = defense_scene.instantiate() as Node2D
+	if map_instance == null or enemy_instance == null or defense_instance == null:
+		print("Project validation failed: map/enemy/defense instantiate check failed.")
 		quit(1)
 		return
 
 	get_root().add_child(map_instance)
 	get_root().add_child(enemy_instance)
+	get_root().add_child(defense_instance)
 	map_instance.call("_ready")
 
 	var main_path: Path2D = map_instance.get_node_or_null("MainPath")
@@ -86,9 +90,32 @@ func _init() -> void:
 		print("Project validation failed: enemy did not move to path space after setup.")
 		quit(1)
 		return
+	if enemy_instance.has_method("apply_damage"):
+		enemy_instance.call("apply_damage", 9999.0)
+	if bool(enemy_instance.call("is_alive")):
+		print("Project validation failed: enemy apply_damage did not kill enemy.")
+		quit(1)
+		return
+
+	var defense_def: Resource = load("res://data/defenses/manguerazo.tres")
+	if defense_def == null:
+		print("Project validation failed: manguerazo.tres could not be loaded.")
+		quit(1)
+		return
+	var wave_controller_script: Script = load("res://scripts/gameplay/wave_controller.gd")
+	var wave_controller: Node = wave_controller_script.new()
+	get_root().add_child(wave_controller)
+	if defense_instance.has_method("setup_from_def"):
+		defense_instance.call("setup_from_def", defense_def, wave_controller)
+	if String(defense_instance.get("defense_id")) != "manguerazo":
+		print("Project validation failed: defense actor did not initialize with manguerazo.")
+		quit(1)
+		return
 
 	enemy_instance.queue_free()
 	map_instance.queue_free()
+	defense_instance.queue_free()
+	wave_controller.queue_free()
 
 	print("Project validation OK.")
 	quit(0)

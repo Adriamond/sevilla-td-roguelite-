@@ -15,13 +15,16 @@ var _spawn_sequence_done: bool = false
 var _running: bool = false
 var _cancel_requested: bool = false
 var _spawned_count: int = 0
+var use_async_timers: bool = true
 
 func configure(spawn_controller: SpawnController) -> void:
 	_spawn_controller = spawn_controller
 
-func start_round(round_def: Resource) -> void:
+func start_round(round_def: Resource) -> bool:
 	if _spawn_controller == null or round_def == null:
-		return
+		return false
+	if _running:
+		return false
 
 	active_round_def = round_def
 	_active_enemies.clear()
@@ -33,6 +36,7 @@ func start_round(round_def: Resource) -> void:
 	var run_state: Node = get_node("/root/RunState")
 	wave_started.emit(int(run_state.get("current_round")))
 	_spawn_round_steps()
+	return true
 
 func complete_wave() -> void:
 	if not _running:
@@ -41,7 +45,9 @@ func complete_wave() -> void:
 	var run_state: Node = get_node("/root/RunState")
 	wave_completed.emit(int(run_state.get("current_round")))
 
-func debug_force_complete() -> void:
+func debug_force_complete() -> bool:
+	if not _running:
+		return false
 	_cancel_requested = true
 	for key: Variant in _active_enemies.keys():
 		var enemy: Node = _active_enemies[key]
@@ -51,9 +57,21 @@ func debug_force_complete() -> void:
 	active_enemy_count_changed.emit(0)
 	_spawn_sequence_done = true
 	_check_wave_completion()
+	return true
+
+func is_running() -> bool:
+	return _running
 
 func get_active_enemy_count() -> int:
 	return _active_enemies.size()
+
+func get_active_enemies() -> Array[Node]:
+	var enemies: Array[Node] = []
+	for enemy_variant: Variant in _active_enemies.values():
+		var enemy: Node = enemy_variant as Node
+		if enemy != null and is_instance_valid(enemy):
+			enemies.append(enemy)
+	return enemies
 
 func _spawn_round_steps() -> void:
 	_spawn_round_steps_async()
@@ -68,7 +86,7 @@ func _spawn_round_steps_async() -> void:
 		var step: Resource = step_variant
 
 		var start_delay: float = float(step.get("start_delay"))
-		if start_delay > 0.0:
+		if use_async_timers and start_delay > 0.0:
 			await get_tree().create_timer(start_delay).timeout
 			if _cancel_requested:
 				break
@@ -85,7 +103,7 @@ func _spawn_round_steps_async() -> void:
 			var enemy: Node = _spawn_controller.spawn_enemy(enemy_id, path_id, is_elite)
 			if enemy != null:
 				_register_enemy(enemy)
-			if i < count - 1 and spawn_interval > 0.0:
+			if use_async_timers and i < count - 1 and spawn_interval > 0.0:
 				await get_tree().create_timer(spawn_interval).timeout
 
 	_spawn_sequence_done = true
