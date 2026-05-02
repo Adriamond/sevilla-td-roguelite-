@@ -1,15 +1,16 @@
 extends Node2D
 
 const MAIN_ROUTE_POINTS: Array[Vector2] = [
-	Vector2(80, 460),
-	Vector2(260, 460),
-	Vector2(260, 360),
-	Vector2(430, 360),
-	Vector2(430, 260),
-	Vector2(620, 260),
-	Vector2(620, 150),
-	Vector2(860, 150),
-	Vector2(900, 90)
+	Vector2(70, 480),
+	Vector2(300, 480),
+	Vector2(300, 360),
+	Vector2(700, 360),
+	Vector2(700, 260),
+	Vector2(380, 260),
+	Vector2(380, 150),
+	Vector2(840, 150),
+	Vector2(840, 70),
+	Vector2(900, 70)
 ]
 
 func _ready() -> void:

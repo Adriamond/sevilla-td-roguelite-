@@ -912,3 +912,107 @@ Acceptance criteria:
 - New docs exist and are concise.
 - AGENTS points to them.
 - Future CR prompts can be shortened by referencing these docs.
+
+---
+
+## CR-008B - Map layout v2 and better build pad placement
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Improve the single-path Pino Montano placeholder map so first-defense placement has clearer tactical choices without expanding gameplay scope.
+
+Affected areas:
+
+- Design: map readability and tactical pad value distribution
+- Code: path fallback constant alignment
+- Data: no schema/id changes
+- UI: none
+- Balance: placement opportunity readability only
+- Docs: CR tracking update
+
+Decision:
+
+Keep a single-path MVP and redesign route geometry plus pad positions to create stronger, medium, and situational placements while preserving current run/wave/combat systems.
+
+Implementation notes:
+
+- Updated `MainPath` and `PathVisual` route with a longer, more varied path and a near-parallel segment zone for stronger range overlap decisions.
+- Kept START/END markers clearly visible with updated label positions.
+- Repositioned pads and added one extra ground pad (`pad_05`) to improve practical placement choices:
+  - at least two high-opportunity pads near multi-pass/turn geometry
+  - at least two medium/situational pads
+  - no pad overlapping the path or debug UI area
+- Updated `scripts/gameplay/pino_montano_map_path.gd` fallback route points to match the new path layout.
+- No gameplay systems, content ids, or schema were changed.
+
+Files likely affected:
+
+- `scenes/maps/pino_montano/pino_montano_map.tscn`
+- `scripts/gameplay/pino_montano_map_path.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Pad strength remains heuristic for MVP; further tuning may be needed once additional defenses are introduced.
+
+Acceptance criteria:
+
+- Single-path map remains readable from START to END.
+- Enemies follow updated route correctly.
+- Build pads are visible/clickable and offer meaningful early placement choices for `manguerazo`.
+- Existing wave/reward/persistence flow remains intact.
+
+---
+
+## CR-008B-FIX - Fix Godot editor parser error for WaveController global class
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Resolve editor parser failure (`Could not parse global class "WaveController"`) so project scripts open and run cleanly in Godot 4.6 editor, not only through validation runner.
+
+Affected areas:
+
+- Design: tooling/runtime stability
+- Code: parser reliability in gameplay controller scripts
+- Data: no schema/id changes
+- UI: no feature scope changes
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Apply minimal parser-hardening fixes: correct `WaveController` script parse issue and add direct script compile/instantiation validation for core global gameplay controllers.
+
+Implementation notes:
+
+- Fixed indentation/parser issue in `scripts/gameplay/wave_controller.gd` (`complete_wave` block).
+- Normalized stray indentation in `scripts/ui/gameplay_root_controller.gd` on `wave_controller` onready binding.
+- Extended `tools/validate_project.gd` with `_validate_global_controller_scripts()`:
+  - loads and instantiates `spawn_controller.gd`
+  - loads and instantiates `wave_controller.gd`
+  - fails validation if either cannot be parsed/instantiated.
+- No gameplay behavior, map layout, content ids, or schema changes.
+
+Files likely affected:
+
+- `scripts/gameplay/wave_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal; validation now fails earlier for parser/global-script issues, which is intended.
+
+Acceptance criteria:
+
+- Editor no longer reports global class parse failure for `WaveController`.
+- `gameplay_root_controller.gd` opens cleanly.
+- Existing CR-008B map changes remain intact.
+- Validation suite remains passing.

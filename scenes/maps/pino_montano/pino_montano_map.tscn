@@ -5,7 +5,7 @@
 
 [sub_resource type="Curve2D" id="Curve2D_main"]
 _data = {
-"points": PackedFloat32Array(80, 460, 0, 0, 0, 0, 260, 460, 0, 0, 0, 0, 260, 360, 0, 0, 0, 0, 430, 360, 0, 0, 0, 0, 430, 260, 0, 0, 0, 0, 620, 260, 0, 0, 0, 0, 620, 150, 0, 0, 0, 0, 860, 150, 0, 0, 0, 0, 900, 90, 0, 0, 0, 0),
+"points": PackedFloat32Array(70, 480, 0, 0, 0, 0, 300, 480, 0, 0, 0, 0, 300, 360, 0, 0, 0, 0, 700, 360, 0, 0, 0, 0, 700, 260, 0, 0, 0, 0, 380, 260, 0, 0, 0, 0, 380, 150, 0, 0, 0, 0, 840, 150, 0, 0, 0, 0, 840, 70, 0, 0, 0, 0, 900, 70, 0, 0, 0, 0),
 "tilts": PackedFloat32Array(),
 "closed": false
 }
@@ -22,6 +22,9 @@ radius = 16.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_pad_04"]
 radius = 16.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_pad_05"]
+radius = 16.0
+
 [node name="PinoMontanoMap" type="Node2D"]
 script = ExtResource("1")
 
@@ -36,32 +39,32 @@ curve = SubResource("Curve2D_main")
 default_color = Color(0.95, 0.82, 0.22, 1)
 width = 28.0
 joint_mode = 1
-points = PackedVector2Array(80, 460, 260, 460, 260, 360, 430, 360, 430, 260, 620, 260, 620, 150, 860, 150, 900, 90)
+points = PackedVector2Array(70, 480, 300, 480, 300, 360, 700, 360, 700, 260, 380, 260, 380, 150, 840, 150, 840, 70, 900, 70)
 
 [node name="StartMarker" type="Polygon2D" parent="."]
 color = Color(0.13, 0.93, 0.35, 1)
 polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
-position = Vector2(80, 460)
+position = Vector2(70, 480)
 
 [node name="EndMarker" type="Polygon2D" parent="."]
 color = Color(0.95, 0.22, 0.22, 1)
 polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
-position = Vector2(900, 90)
+position = Vector2(900, 70)
 
 [node name="StartText" type="Label" parent="."]
-offset_left = 34.0
-offset_top = 482.0
-offset_right = 112.0
-offset_bottom = 506.0
+offset_left = 28.0
+offset_top = 503.0
+offset_right = 106.0
+offset_bottom = 527.0
 text = "START"
 theme_override_colors/font_color = Color(0.88, 1, 0.9, 1)
 theme_override_font_sizes/font_size = 13
 
 [node name="EndText" type="Label" parent="."]
-offset_left = 906.0
-offset_top = 104.0
-offset_right = 944.0
-offset_bottom = 128.0
+offset_left = 902.0
+offset_top = 84.0
+offset_right = 940.0
+offset_bottom = 108.0
 text = "END"
 theme_override_colors/font_color = Color(1, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 13
@@ -69,7 +72,7 @@ theme_override_font_sizes/font_size = 13
 [node name="BuildPads" type="Node2D" parent="."]
 
 [node name="Pad01" type="Area2D" parent="BuildPads"]
-position = Vector2(334, 458)
+position = Vector2(500, 310)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_01"
@@ -82,7 +85,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
 
 [node name="Pad02" type="Area2D" parent="BuildPads"]
-position = Vector2(525, 320)
+position = Vector2(360, 210)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_02"
@@ -95,7 +98,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
 
 [node name="Pad03" type="Area2D" parent="BuildPads"]
-position = Vector2(760, 220)
+position = Vector2(760, 210)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_03"
@@ -108,7 +111,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
 
 [node name="Pad04" type="Area2D" parent="BuildPads"]
-position = Vector2(446, 186)
+position = Vector2(250, 430)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_04"
@@ -117,5 +120,18 @@ pad_id = "pad_04"
 shape = SubResource("CircleShape2D_pad_04")
 
 [node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad04"]
+color = Color(0.23, 0.68, 0.96, 0.84)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="Pad05" type="Area2D" parent="BuildPads"]
+position = Vector2(760, 120)
+script = ExtResource("2")
+pad_category = "ground"
+pad_id = "pad_05"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuildPads/Pad05"]
+shape = SubResource("CircleShape2D_pad_05")
+
+[node name="PadVisual" type="Polygon2D" parent="BuildPads/Pad05"]
 color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)

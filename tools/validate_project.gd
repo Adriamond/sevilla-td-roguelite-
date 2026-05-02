@@ -15,6 +15,8 @@ const SCENE_SPECS: Array[Dictionary] = [
 
 func _init() -> void:
 	print("Running project validation...")
+	if not _validate_global_controller_scripts():
+		return
 
 	for scene_spec: Dictionary in SCENE_SPECS:
 		var scene_path: String = scene_spec.get("scene", "")
@@ -119,3 +121,23 @@ func _init() -> void:
 
 	print("Project validation OK.")
 	quit(0)
+
+func _validate_global_controller_scripts() -> bool:
+	var required_scripts: Array[String] = [
+		"res://scripts/gameplay/spawn_controller.gd",
+		"res://scripts/gameplay/wave_controller.gd"
+	]
+	for script_path: String in required_scripts:
+		var script_res: Script = load(script_path)
+		if script_res == null:
+			print("Project validation failed: could not load script: ", script_path)
+			quit(1)
+			return false
+		var script_instance: Object = script_res.new()
+		if script_instance == null:
+			print("Project validation failed: could not instantiate script: ", script_path)
+			quit(1)
+			return false
+		if script_instance is Node:
+			(script_instance as Node).queue_free()
+	return true
