@@ -467,3 +467,112 @@ Acceptance criteria:
 - Flow smoke validation passes headlessly.
 - Existing content/project validations remain intact.
 - No new gameplay scope (towers/combat) introduced.
+
+---
+
+## CR-006A - Runtime display size and enemy visibility debug pass
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Fix manual testing readability by enforcing a larger runtime view and making placeholder enemies clearly visible during wave flow.
+
+Affected areas:
+
+- Design: debug readability only
+- Code: debug HUD instrumentation and enemy readability tuning
+- Data: no schema changes, no new ids
+- UI: gameplay debug panel additions for resolution and counters
+- Balance: temporary readability-oriented visibility pacing only
+- Docs: CR tracking update
+
+Decision:
+
+Apply a focused debug pass: set readable runtime viewport, expose runtime resolution/camera info, add spawned/active/leaked counters, and increase enemy on-screen readability without adding new gameplay systems.
+
+Implementation notes:
+
+- Updated `project.godot` debug viewport to `960x540`.
+- Added gameplay debug labels for viewport size, camera zoom, and window size.
+- Added debug counters for spawned, active, and leaked enemies.
+- Added `enemy_spawned` signal in `WaveController` for deterministic spawned counting.
+- Increased enemy placeholder size/contrast, added per-enemy short id label, and enforced high z-order above map.
+- Reduced placeholder enemy movement speed scale for better manual visual tracking.
+- No towers/combat/targeting/placement added.
+
+Files likely affected:
+
+- `project.godot`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/enemies/enemy_base.tscn`
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/gameplay/wave_controller.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Debug-focused visibility values may differ from future final tuning.
+
+Acceptance criteria:
+
+- Runtime window is clearly readable for manual testing.
+- Enemy visibility and layering are obvious during movement.
+- Debug panel exposes resolution and enemy counters.
+- Existing CR-005 flow and validations remain passing.
+- No new gameplay scope (towers/combat) introduced.
+
+---
+
+## CR-006B - Fix enemy path positioning and movement visibility
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Fix enemy path-following bugs so enemies visibly spawn at START and move along the yellow route at an observable pace during manual testing.
+
+Affected areas:
+
+- Design: pre-defense gameplay readability stabilization
+- Code: enemy path sampling/positioning robustness and spawn path guards
+- Data: no schema/id changes
+- UI: existing debug counters reused for verification
+- Balance: debug-speed readability tuning only
+- Docs: CR tracking update
+
+Decision:
+
+Harden movement against path-bake edge cases by switching enemy traversal to robust polyline sampling (with control-point fallback), keep coordinate conversion explicit through `Path2D.to_global`, and reject spawns with invalid paths.
+
+Implementation notes:
+
+- `EnemyActor` now builds sampled path points and computes polyline length explicitly.
+- Movement now samples against that polyline, avoiding zero-length/invalid baked-path behavior.
+- Enemy label now includes progress percentage for debug visibility.
+- Spawn now validates path existence/curve shape before completing enemy setup.
+- Added project validation check to instantiate map + enemy, verify path viability, and run a lightweight enemy movement step.
+- This is a bugfix/readability stabilization before defense placement.
+- No towers/combat/targeting/placement added.
+
+Files likely affected:
+
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/gameplay/spawn_controller.gd`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Debug speed constants may be retuned later when defense/combat systems are introduced.
+
+Acceptance criteria:
+
+- Enemies spawn at path start and move visibly along route.
+- Active/spawned/leaked counters remain coherent during movement.
+- Core HP still decreases on leak and wave flow reaches reward selection.
+- Existing validations and CR-005 smoke flow remain passing.
+- No new gameplay scope (towers/combat) introduced.

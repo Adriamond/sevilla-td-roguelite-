@@ -34,6 +34,10 @@ func spawn_enemy(enemy_id: String, path_id: String = "main", is_elite: bool = fa
 	var path: Path2D = _path_controller.get_path_node(path_id)
 	if path == null:
 		path = _path_controller.get_path_node("main")
+	if path == null or path.curve == null or path.curve.get_point_count() < 2:
+		push_warning("Missing or invalid path for enemy spawn (enemy_id=%s, path_id=%s)." % [enemy_id, path_id])
+		enemy_node.queue_free()
+		return null
 
 	if enemy_node.has_method("setup_from_def"):
 		enemy_node.call("setup_from_def", enemy_def, path, is_elite)

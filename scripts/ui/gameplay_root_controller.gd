@@ -13,6 +13,11 @@ signal core_depleted
 @onready var force_complete_button: Button = %ForceCompleteButton
 @onready var core_hp_label: Label = %CoreHPValueLabel
 @onready var active_enemies_label: Label = %ActiveEnemiesValueLabel
+@onready var spawned_enemies_label: Label = %SpawnedEnemiesValueLabel
+@onready var leaked_enemies_label: Label = %LeakedEnemiesValueLabel
+@onready var viewport_label: Label = %ViewportValueLabel
+@onready var camera_zoom_label: Label = %CameraZoomValueLabel
+@onready var window_size_label: Label = %WindowSizeValueLabel
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
 @onready var path_controller: PathController = %PathController
@@ -22,6 +27,8 @@ signal core_depleted
 var _is_wave_running: bool = false
 var _map_instance: Node2D = null
 var _active_round_def: Resource = null
+var _spawned_count: int = 0
+var _leaked_count: int = 0
 
 func show_build_phase() -> void:
 	_is_wave_running = false
@@ -55,6 +62,8 @@ func prepare_round(round_def: Resource) -> void:
 func start_wave() -> void:
 	if _active_round_def == null:
 		return
+	_spawned_count = 0
+	_leaked_count = 0
 	_is_wave_running = true
 	show_wave_running()
 	wave_controller.start_round(_active_round_def)
@@ -67,6 +76,7 @@ func _ready() -> void:
 	wave_controller.configure(spawn_controller)
 	wave_controller.wave_completed.connect(_on_wave_completed)
 	wave_controller.enemy_leaked.connect(_on_enemy_leaked)
+	wave_controller.enemy_spawned.connect(_on_enemy_spawned)
 	wave_controller.active_enemy_count_changed.connect(_on_active_enemy_count_changed)
 	_center_camera()
 	_update_status_labels()
@@ -110,11 +120,16 @@ func _on_wave_completed(_round_index: int) -> void:
 	wave_completed.emit()
 
 func _on_enemy_leaked(_enemy_id: String, leak_damage: int) -> void:
+	_leaked_count += 1
 	var run_state: Node = get_node("/root/RunState")
 	run_state.call("damage_core", leak_damage)
 	_update_status_labels()
 	if bool(run_state.call("is_defeated")):
 		core_depleted.emit()
+
+func _on_enemy_spawned(_enemy_id: String) -> void:
+	_spawned_count += 1
+	_update_status_labels()
 
 func _on_active_enemy_count_changed(_value: int) -> void:
 	_update_status_labels()
@@ -124,3 +139,11 @@ func _update_status_labels() -> void:
 	round_label.text = str(int(run_state.get("current_round")))
 	core_hp_label.text = str(int(run_state.get("core_hp")))
 	active_enemies_label.text = str(wave_controller.get_active_enemy_count())
+	spawned_enemies_label.text = str(_spawned_count)
+	leaked_enemies_label.text = str(_leaked_count)
+	var viewport_size: Vector2i = get_viewport().get_visible_rect().size
+	viewport_label.text = "%dx%d" % [viewport_size.x, viewport_size.y]
+	var camera: Camera2D = get_node_or_null("MainCamera")
+	camera_zoom_label.text = "x%.2f y%.2f" % [camera.zoom.x, camera.zoom.y] if camera != null else "N/A"
+	var window_size: Vector2i = DisplayServer.window_get_size()
+	window_size_label.text = "%dx%d" % [window_size.x, window_size.y]

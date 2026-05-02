@@ -45,5 +45,50 @@ func _init() -> void:
 
 		instance.queue_free()
 
+	var map_scene: PackedScene = load("res://scenes/maps/pino_montano/pino_montano_map.tscn")
+	var enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
+	if map_scene == null or enemy_scene == null:
+		print("Project validation failed: map/enemy scene load check failed.")
+		quit(1)
+		return
+
+	var map_instance: Node2D = map_scene.instantiate() as Node2D
+	var enemy_instance: Node2D = enemy_scene.instantiate() as Node2D
+	if map_instance == null or enemy_instance == null:
+		print("Project validation failed: map/enemy instantiate check failed.")
+		quit(1)
+		return
+
+	get_root().add_child(map_instance)
+	get_root().add_child(enemy_instance)
+	map_instance.call("_ready")
+
+	var main_path: Path2D = map_instance.get_node_or_null("MainPath")
+	if main_path == null or main_path.curve == null:
+		print("Project validation failed: MainPath or MainPath.curve is missing.")
+		quit(1)
+		return
+	if main_path.curve.get_baked_length() <= 0.0 and main_path.curve.get_point_count() < 2:
+		print("Project validation failed: MainPath has insufficient points/length.")
+		quit(1)
+		return
+
+	var enemy_def: Resource = load("res://data/enemies/tactichandal_runner.tres")
+	if enemy_def == null:
+		print("Project validation failed: tactichandal_runner.tres could not be loaded.")
+		quit(1)
+		return
+	if enemy_instance.has_method("setup_from_def"):
+		enemy_instance.call("setup_from_def", enemy_def, main_path, false)
+	if enemy_instance.has_method("_process"):
+		enemy_instance.call("_process", 0.1)
+	if enemy_instance.global_position == Vector2.ZERO:
+		print("Project validation failed: enemy did not move to path space after setup.")
+		quit(1)
+		return
+
+	enemy_instance.queue_free()
+	map_instance.queue_free()
+
 	print("Project validation OK.")
 	quit(0)

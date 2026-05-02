@@ -5,6 +5,7 @@ class_name WaveController
 signal wave_started(round_index: int)
 signal wave_completed(round_index: int)
 signal enemy_leaked(enemy_id: String, leak_damage: int)
+signal enemy_spawned(enemy_id: String)
 signal active_enemy_count_changed(value: int)
 
 var active_round_def: Resource
@@ -13,6 +14,7 @@ var _active_enemies: Dictionary = {}
 var _spawn_sequence_done: bool = false
 var _running: bool = false
 var _cancel_requested: bool = false
+var _spawned_count: int = 0
 
 func configure(spawn_controller: SpawnController) -> void:
 	_spawn_controller = spawn_controller
@@ -26,6 +28,7 @@ func start_round(round_def: Resource) -> void:
 	_spawn_sequence_done = false
 	_running = true
 	_cancel_requested = false
+	_spawned_count = 0
 
 	var run_state: Node = get_node("/root/RunState")
 	wave_started.emit(int(run_state.get("current_round")))
@@ -91,6 +94,9 @@ func _spawn_round_steps_async() -> void:
 func _register_enemy(enemy: Node) -> void:
 	var id: int = enemy.get_instance_id()
 	_active_enemies[id] = enemy
+	_spawned_count += 1
+	var spawned_enemy_id: String = String(enemy.get("enemy_id")) if enemy.get("enemy_id") != null else ""
+	enemy_spawned.emit(spawned_enemy_id)
 	active_enemy_count_changed.emit(_active_enemies.size())
 
 	if enemy.has_signal("reached_end"):

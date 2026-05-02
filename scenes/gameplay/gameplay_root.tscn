@@ -17,6 +17,7 @@ unique_name_in_owner = true
 
 [node name="EnemyLayer" type="Node2D" parent="."]
 unique_name_in_owner = true
+z_index = 20
 
 [node name="Systems" type="Node" parent="."]
 
@@ -37,15 +38,15 @@ script = ExtResource("4")
 [node name="DebugPanel" type="ColorRect" parent="UILayer"]
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 184.0
-offset_bottom = 166.0
+offset_right = 220.0
+offset_bottom = 260.0
 color = Color(0.06, 0.08, 0.12, 0.78)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/DebugPanel"]
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 166.0
-offset_bottom = 148.0
+offset_right = 202.0
+offset_bottom = 242.0
 
 [node name="PhaseLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
 unique_name_in_owner = true
@@ -77,6 +78,51 @@ theme_override_font_sizes/font_size = 11
 [node name="ActiveEnemiesValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
 unique_name_in_owner = true
 text = "0"
+theme_override_font_sizes/font_size = 11
+
+[node name="SpawnedEnemiesLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Spawned:"
+theme_override_font_sizes/font_size = 11
+
+[node name="SpawnedEnemiesValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "0"
+theme_override_font_sizes/font_size = 11
+
+[node name="LeakedEnemiesLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Leaked:"
+theme_override_font_sizes/font_size = 11
+
+[node name="LeakedEnemiesValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "0"
+theme_override_font_sizes/font_size = 11
+
+[node name="ViewportLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Viewport:"
+theme_override_font_sizes/font_size = 11
+
+[node name="ViewportValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "N/A"
+theme_override_font_sizes/font_size = 11
+
+[node name="CameraZoomLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Camera zoom:"
+theme_override_font_sizes/font_size = 11
+
+[node name="CameraZoomValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "N/A"
+theme_override_font_sizes/font_size = 11
+
+[node name="WindowSizeLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Window:"
+theme_override_font_sizes/font_size = 11
+
+[node name="WindowSizeValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "N/A"
 theme_override_font_sizes/font_size = 11
 
 [node name="PhaseActionButton" type="Button" parent="UILayer/DebugPanel/VBoxContainer"]
