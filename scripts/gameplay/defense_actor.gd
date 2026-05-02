@@ -10,6 +10,7 @@ var attack_range: float = 64.0
 var fire_rate: float = 1.0
 var targeting_mode: String = "first"
 var base_cost: int = 0
+var has_participated_in_wave: bool = false
 
 var _cooldown: float = 0.0
 var _wave_controller: WaveController = null
@@ -28,6 +29,7 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 	attack_range = float(defense_def.get("base_range"))
 	fire_rate = max(float(defense_def.get("base_fire_rate")), 0.1)
 	targeting_mode = String(defense_def.get("targeting_mode"))
+	has_participated_in_wave = false
 	_wave_controller = wave_controller
 
 	if label != null:
@@ -97,3 +99,6 @@ func _on_click_area_input_event(_viewport: Viewport, event: InputEvent, _shape_i
 	if not mouse_event.pressed:
 		return
 	defense_clicked.emit(self)
+
+func mark_participated_in_wave() -> void:
+	has_participated_in_wave = true

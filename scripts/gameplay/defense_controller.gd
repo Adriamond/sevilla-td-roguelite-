@@ -94,7 +94,7 @@ func get_selected_refund_amount() -> int:
 	var defense: DefenseActor = get_selected_defense()
 	if defense == null:
 		return 0
-	return _calculate_refund_amount(defense.base_cost)
+	return _calculate_refund_amount(defense)
 
 func can_sell_selected_defense() -> bool:
 	if _wave_controller == null:
@@ -110,7 +110,7 @@ func sell_selected_defense() -> int:
 	var defense: DefenseActor = get_selected_defense()
 	if defense == null:
 		return 0
-	var refund_amount: int = _calculate_refund_amount(defense.base_cost)
+	var refund_amount: int = _calculate_refund_amount(defense)
 	if refund_amount > 0:
 		_run_state().call("add_gold", refund_amount)
 	_release_pad_for_defense(defense)
@@ -143,9 +143,23 @@ func _content_db() -> Node:
 func _on_defense_clicked(defense: DefenseActor) -> void:
 	select_defense(defense)
 
-func _calculate_refund_amount(base_cost: int) -> int:
+func mark_active_defenses_participated() -> void:
+	if _defense_parent == null:
+		return
+	for child: Node in _defense_parent.get_children():
+		var defense: DefenseActor = child as DefenseActor
+		if defense == null:
+			continue
+		defense.mark_participated_in_wave()
+
+func _calculate_refund_amount(defense: DefenseActor) -> int:
+	if defense == null:
+		return 0
+	var base_cost: int = defense.base_cost
 	if base_cost <= 0:
 		return 0
+	if not defense.has_participated_in_wave:
+		return base_cost
 	var current_round: int = int(_run_state().get("current_round"))
 	var ratio: float = 0.8 if current_round <= 2 else 0.7
 	return int(floor(float(base_cost) * ratio))

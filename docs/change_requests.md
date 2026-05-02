@@ -1084,3 +1084,62 @@ Acceptance criteria:
 - Selling releases occupied pad and allows rebuilding.
 - Selling is blocked during wave running.
 - Existing run/wave/reward flow remains intact.
+
+---
+
+## CR-009B - Refine sell refund rules and debug UI layout
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Make pre-wave selling fully refundable and keep debug controls reachable after CR-009 UI growth.
+
+Affected areas:
+
+- Design: clearer sell fairness and better debug usability
+- Code: defense participation tracking and refund policy refinement
+- Data: no schema/id changes
+- UI: compact debug panel behavior
+- Balance: sell refund tuning only
+- Docs: CR tracking update
+
+Decision:
+
+Refund 100% for defenses that have not participated in any wave. After first wave participation, apply existing round-based refund formula. Keep controls visible by compacting the debug panel content.
+
+Implementation notes:
+
+- Added `has_participated_in_wave` flag to `DefenseActor`.
+- `DefenseController` now:
+  - marks active defenses as participated when a wave starts
+  - refunds 100% if defense never participated
+  - otherwise uses existing 80% (rounds 1-2) / 70% (round 3+) formula
+- `GameplayRootController.start_wave()` now marks defenses participated once wave start is accepted.
+- Compact debug panel adjustment:
+  - hides low-priority viewport/camera/window rows at runtime
+  - retains visibility of `Start Wave`, `[DEBUG] Force Complete`, and `Sell Selected` controls.
+- Extended `validate_flow_smoke.gd` to verify:
+  - pre-wave sell refunds 100%
+  - post-wave sell in next build phase uses formula refund.
+
+Files likely affected:
+
+- `scripts/gameplay/defense_actor.gd`
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/gameplay/gameplay_root.tscn`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal; participation is tracked as a single boolean and intentionally does not model detailed combat history.
+
+Acceptance criteria:
+
+- Selling before wave returns full build cost.
+- Selling after participation uses round formula.
+- Debug action/sell controls remain reachable.
+- Existing run/wave/reward flow remains intact.

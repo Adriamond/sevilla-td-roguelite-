@@ -150,7 +150,7 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	var gold_before_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
 	var refund: int = int(gameplay.call("sell_selected_for_debug"))
-	if not _assert_true(refund == 44, "Expected round 1 sell refund to be 44 gold (80% of 55)."):
+	if not _assert_true(refund == 55, "Expected pre-wave sell refund to be 55 gold (100% of 55)."):
 		return false
 	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_sell + refund, "Expected gold to increase by sell refund."):
 		return false
@@ -189,6 +189,16 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(String(gameplay_next_round.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to reset to Build Phase in next round."):
 		return false
 	if not _assert_true(int(gameplay_next_round.call("get_defense_count")) == 1, "Expected defense to persist across rounds in same run."):
+		return false
+	if not _assert_true(bool(gameplay_next_round.call("select_first_defense_for_debug")), "Expected selecting persisted defense in next build phase to succeed."):
+		return false
+	if not _assert_true(int(gameplay_next_round.call("get_selected_refund_amount")) == 44, "Expected post-wave refund to follow round formula (80% on round 2)."):
+		return false
+	var gold_before_post_wave_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
+	var post_wave_refund: int = int(gameplay_next_round.call("sell_selected_for_debug"))
+	if not _assert_true(post_wave_refund == 44, "Expected sell refund after one participated wave to be 44 gold in round 2."):
+		return false
+	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_post_wave_sell + post_wave_refund, "Expected gold to increase by post-wave refund amount."):
 		return false
 
 	boot.queue_free()

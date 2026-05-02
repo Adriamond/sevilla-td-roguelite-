@@ -17,8 +17,11 @@ signal core_depleted
 @onready var spawned_enemies_label: Label = %SpawnedEnemiesValueLabel
 @onready var leaked_enemies_label: Label = %LeakedEnemiesValueLabel
 @onready var viewport_label: Label = %ViewportValueLabel
+@onready var viewport_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/ViewportLabel")
 @onready var camera_zoom_label: Label = %CameraZoomValueLabel
+@onready var camera_zoom_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/CameraZoomLabel")
 @onready var window_size_label: Label = %WindowSizeValueLabel
+@onready var window_size_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/WindowSizeLabel")
 @onready var build_hint_label: Label = %BuildHintLabel
 @onready var selected_defense_label: Label = %SelectedDefenseValueLabel
 @onready var sell_refund_label: Label = %SellRefundValueLabel
@@ -104,6 +107,7 @@ func start_wave() -> void:
 		build_hint_label.text = "Cannot start wave: controller rejected start"
 		show_build_phase()
 		return
+	defense_controller.mark_active_defenses_participated()
 	show_wave_running()
 
 func force_complete_wave() -> void:
@@ -174,6 +178,7 @@ func _ready() -> void:
 	defense_controller.build_failed.connect(_on_build_failed)
 	defense_controller.defense_selected.connect(_on_defense_selected)
 	defense_controller.defense_sold.connect(_on_defense_sold)
+	_set_compact_debug_layout()
 	_center_camera()
 	_update_status_labels()
 
@@ -337,6 +342,17 @@ func _set_build_pads_enabled(enabled: bool) -> void:
 
 func get_phase_name() -> String:
 	return _phase_name
+
+func _set_compact_debug_layout() -> void:
+	if viewport_header_label != null:
+		viewport_header_label.visible = false
+	viewport_label.visible = false
+	if camera_zoom_header_label != null:
+		camera_zoom_header_label.visible = false
+	camera_zoom_label.visible = false
+	if window_size_header_label != null:
+		window_size_header_label.visible = false
+	window_size_label.visible = false
 
 func request_sell_selected_defense() -> void:
 	if _is_wave_running:
