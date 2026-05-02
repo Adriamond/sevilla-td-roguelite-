@@ -863,3 +863,52 @@ Acceptance criteria:
 - Core depletion shows Defeat screen and does not quit app.
 - Main Menu Quit still exits the app.
 - Validation suite remains passing.
+
+---
+
+## CR-008A - Add compact workflow and lifecycle docs
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Reduce future CR prompt size by centralizing repeated workflow, validation, lifecycle, and prompt-structure rules in stable docs.
+
+Affected areas:
+
+- Design: process clarity for future CR execution
+- Code: none
+- Data: none
+- UI: none
+- Balance: none
+- Docs: new workflow/lifecycle/template docs and AGENTS references
+
+Decision:
+
+Add concise process docs that future prompts can reference directly instead of repeating long instructions.
+
+Implementation notes:
+
+- Added `docs/current_workflow.md` with CR sequencing, validation protocol, manual-test order, and handoff requirements.
+- Added `docs/lifecycle_rules.md` with run/wave lifecycle boundaries and ownership rules.
+- Added `docs/next_cr_template.md` with reusable compact CR prompt structure.
+- Updated `AGENTS.md` to reference the new docs.
+
+Files likely affected:
+
+- `docs/current_workflow.md`
+- `docs/lifecycle_rules.md`
+- `docs/next_cr_template.md`
+- `AGENTS.md`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal; documentation drift is possible if future process changes are not mirrored in these docs.
+
+Acceptance criteria:
+
+- New docs exist and are concise.
+- AGENTS points to them.
+- Future CR prompts can be shortened by referencing these docs.

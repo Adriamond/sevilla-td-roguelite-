@@ -61,6 +61,12 @@ If scope and architecture conflict, reduce content. Do not reduce architecture q
 - Room/reward screens may overlay or hide gameplay, but must not destroy run-lifecycle gameplay objects.
 - Changes that add persistent runtime objects must include deterministic lifecycle smoke validation.
 
+See also:
+
+- `docs/current_workflow.md`
+- `docs/lifecycle_rules.md`
+- `docs/next_cr_template.md`
+
 ---
 
 ## Source of truth documents
@@ -72,6 +78,8 @@ Before implementing gameplay, read:
 - `docs/balance_notes.md`
 - `docs/third_party_assets.md`
 - `docs/codex_tasks.md`
+- `docs/current_workflow.md`
+- `docs/lifecycle_rules.md`
 
 If these docs conflict with chat instructions, the latest explicit user instruction wins.
 If docs conflict with each other, stop and report the conflict before implementing.
