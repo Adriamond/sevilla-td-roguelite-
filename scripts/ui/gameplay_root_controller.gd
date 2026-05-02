@@ -20,6 +20,9 @@ signal core_depleted
 @onready var camera_zoom_label: Label = %CameraZoomValueLabel
 @onready var window_size_label: Label = %WindowSizeValueLabel
 @onready var build_hint_label: Label = %BuildHintLabel
+@onready var selected_defense_label: Label = %SelectedDefenseValueLabel
+@onready var sell_refund_label: Label = %SellRefundValueLabel
+@onready var sell_button: Button = %SellDefenseButton
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
 @onready var defense_layer: Node2D = %DefenseLayer
@@ -46,6 +49,7 @@ func show_build_phase() -> void:
 	action_button.disabled = false
 	force_complete_button.visible = false
 	force_complete_button.disabled = true
+	sell_button.disabled = not defense_controller.can_sell_selected_defense()
 	_set_build_pads_enabled(true)
 	build_hint_label.text = "Click pad to build manguerazo"
 	_update_status_labels()
@@ -58,6 +62,7 @@ func show_wave_running() -> void:
 	action_button.disabled = true
 	force_complete_button.visible = true
 	force_complete_button.disabled = false
+	sell_button.disabled = true
 	_set_build_pads_enabled(false)
 	build_hint_label.text = "Build disabled during wave"
 	_update_status_labels()
@@ -129,6 +134,9 @@ func reset_run_runtime() -> void:
 	_clear_defense_layer()
 	if defense_controller != null:
 		defense_controller.reset_run_runtime()
+	selected_defense_label.text = "None"
+	sell_refund_label.text = "0"
+	sell_button.disabled = true
 	_set_build_pads_enabled(false)
 	_update_status_labels()
 
@@ -164,6 +172,8 @@ func _ready() -> void:
 	wave_controller.enemy_spawned.connect(_on_enemy_spawned)
 	wave_controller.active_enemy_count_changed.connect(_on_active_enemy_count_changed)
 	defense_controller.build_failed.connect(_on_build_failed)
+	defense_controller.defense_selected.connect(_on_defense_selected)
+	defense_controller.defense_sold.connect(_on_defense_sold)
 	_center_camera()
 	_update_status_labels()
 
@@ -236,6 +246,9 @@ func _on_pad_clicked(pad: Area2D) -> void:
 	var built: bool = defense_controller.build_defense(_build_defense_id, pad, pad_category)
 	if built:
 		build_hint_label.text = "Built manguerazo on %s" % pad_id
+		var latest_defense: DefenseActor = defense_layer.get_child(defense_layer.get_child_count() - 1) as DefenseActor
+		if latest_defense != null:
+			defense_controller.select_defense(latest_defense)
 		_update_status_labels()
 
 func _on_build_failed(reason: String) -> void:
@@ -246,6 +259,23 @@ func _on_build_failed(reason: String) -> void:
 			build_hint_label.text = "Pad occupied or invalid"
 		_:
 			build_hint_label.text = "Build failed: %s" % reason
+
+func _on_defense_selected(defense: DefenseActor, refund_amount: int) -> void:
+	if defense == null:
+		selected_defense_label.text = "None"
+		sell_refund_label.text = "0"
+		sell_button.disabled = true
+		return
+	selected_defense_label.text = defense.defense_id
+	sell_refund_label.text = str(refund_amount)
+	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
+
+func _on_defense_sold(defense_id: String, refund_amount: int) -> void:
+	selected_defense_label.text = "None"
+	sell_refund_label.text = "0"
+	sell_button.disabled = true
+	build_hint_label.text = "Sold %s for %d gold" % [defense_id, refund_amount]
+	_update_status_labels()
 
 func _connect_build_pads() -> void:
 	if _map_instance == null:
@@ -275,6 +305,11 @@ func _update_status_labels() -> void:
 	camera_zoom_label.text = "x%.2f y%.2f" % [camera.zoom.x, camera.zoom.y] if camera != null else "N/A"
 	var window_size: Vector2i = DisplayServer.window_get_size()
 	window_size_label.text = "%dx%d" % [window_size.x, window_size.y]
+	if selected_defense_label.text == "":
+		selected_defense_label.text = "None"
+	if sell_refund_label.text == "":
+		sell_refund_label.text = "0"
+	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
 
 func _clear_enemy_layer() -> void:
 	if enemy_layer == null:
@@ -302,3 +337,33 @@ func _set_build_pads_enabled(enabled: bool) -> void:
 
 func get_phase_name() -> String:
 	return _phase_name
+
+func request_sell_selected_defense() -> void:
+	if _is_wave_running:
+		build_hint_label.text = "Selling disabled during wave"
+		return
+	var refund: int = defense_controller.sell_selected_defense()
+	if refund <= 0:
+		build_hint_label.text = "No sellable defense selected"
+		return
+	_update_status_labels()
+
+func get_selected_defense_id() -> String:
+	var defense: DefenseActor = defense_controller.get_selected_defense()
+	if defense == null:
+		return ""
+	return defense.defense_id
+
+func get_selected_refund_amount() -> int:
+	return defense_controller.get_selected_refund_amount()
+
+func sell_selected_for_debug() -> int:
+	return defense_controller.sell_selected_defense()
+
+func select_first_defense_for_debug() -> bool:
+	for child: Node in defense_layer.get_children():
+		var defense: DefenseActor = child as DefenseActor
+		if defense == null:
+			continue
+		return defense_controller.select_defense(defense)
+	return false

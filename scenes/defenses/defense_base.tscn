@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/defense_actor.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_click"]
+radius = 18.0
 
 [node name="DefenseBase" type="Node2D"]
 script = ExtResource("1")
@@ -35,3 +38,10 @@ text = "manguerazo"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.94, 0.97, 1, 1)
 theme_override_font_sizes/font_size = 10
+
+[node name="ClickArea" type="Area2D" parent="."]
+unique_name_in_owner = true
+input_pickable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea"]
+shape = SubResource("CircleShape2D_click")

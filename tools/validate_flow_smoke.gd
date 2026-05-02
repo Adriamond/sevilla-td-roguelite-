@@ -144,6 +144,23 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense count=1 after initial build."):
 		return false
+	if not _assert_true(bool(gameplay.call("select_first_defense_for_debug")), "Expected selecting first defense to succeed in build phase."):
+		return false
+	if not _assert_true(String(gameplay.call("get_selected_defense_id")) == "manguerazo", "Expected selected defense id to be manguerazo."):
+		return false
+	var gold_before_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
+	var refund: int = int(gameplay.call("sell_selected_for_debug"))
+	if not _assert_true(refund == 44, "Expected round 1 sell refund to be 44 gold (80% of 55)."):
+		return false
+	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_sell + refund, "Expected gold to increase by sell refund."):
+		return false
+	await process_frame
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 0, "Expected defense count=0 after selling selected defense."):
+		return false
+	if not _assert_true(bool(gameplay.call("build_debug_first_pad")), "Expected first pad to be buildable again after selling."):
+		return false
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense rebuild after sell to succeed."):
+		return false
 
 	boot.call("_on_start_wave_requested")
 	await process_frame
@@ -153,6 +170,10 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(String(gameplay_after_wave_start.call("get_phase_name")) == "WAVE_RUNNING", "Expected gameplay phase to be Wave Running after wave start."):
 		return false
 	if not _assert_true(int(gameplay_after_wave_start.call("get_defense_count")) == 1, "Expected defense to persist from build to wave."):
+		return false
+	if not _assert_true(bool(gameplay_after_wave_start.call("select_first_defense_for_debug")), "Expected selecting defense in wave phase to still work for UI/debug checks."):
+		return false
+	if not _assert_true(int(gameplay_after_wave_start.call("sell_selected_for_debug")) == 0, "Expected selling to be blocked during Wave Running."):
 		return false
 
 	boot.call("_on_force_complete_wave_requested")

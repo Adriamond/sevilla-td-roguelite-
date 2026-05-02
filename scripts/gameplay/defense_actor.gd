@@ -2,11 +2,14 @@ extends Node2D
 
 class_name DefenseActor
 
+signal defense_clicked(defense: DefenseActor)
+
 var defense_id: String = ""
 var damage: float = 1.0
 var attack_range: float = 64.0
 var fire_rate: float = 1.0
 var targeting_mode: String = "first"
+var base_cost: int = 0
 
 var _cooldown: float = 0.0
 var _wave_controller: WaveController = null
@@ -14,11 +17,13 @@ var _wave_controller: WaveController = null
 @onready var label: Label = get_node_or_null("%DefenseLabel")
 @onready var range_circle: Line2D = get_node_or_null("%RangeCircle")
 @onready var attack_beam: Line2D = get_node_or_null("%AttackBeam")
+@onready var click_area: Area2D = get_node_or_null("%ClickArea")
 
 var _beam_timer: float = 0.0
 
 func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> void:
 	defense_id = String(defense_def.get("id"))
+	base_cost = int(defense_def.get("base_cost"))
 	damage = float(defense_def.get("base_damage"))
 	attack_range = float(defense_def.get("base_range"))
 	fire_rate = max(float(defense_def.get("base_fire_rate")), 0.1)
@@ -28,6 +33,8 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 	if label != null:
 		label.text = defense_id
 	_draw_range_circle()
+	if click_area != null and not click_area.is_connected("input_event", _on_click_area_input_event):
+		click_area.connect("input_event", _on_click_area_input_event)
 
 func _process(delta: float) -> void:
 	if _wave_controller == null:
@@ -80,3 +87,13 @@ func _show_attack_beam_to(target_global_position: Vector2) -> void:
 	attack_beam.points = PackedVector2Array([Vector2.ZERO, to_local(target_global_position)])
 	attack_beam.visible = true
 	_beam_timer = 0.08
+
+func _on_click_area_input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
+	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+	if mouse_event == null:
+		return
+	if mouse_event.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if not mouse_event.pressed:
+		return
+	defense_clicked.emit(self)

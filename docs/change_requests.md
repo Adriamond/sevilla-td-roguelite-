@@ -1016,3 +1016,71 @@ Acceptance criteria:
 - `gameplay_root_controller.gd` opens cleanly.
 - Existing CR-008B map changes remain intact.
 - Validation suite remains passing.
+
+---
+
+## CR-009 - Basic defense selling
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Allow removing bad placements by selecting a placed `manguerazo` during Build Phase and selling it for a partial gold refund.
+
+Affected areas:
+
+- Design: MVP placement flexibility and faster balance iteration
+- Code: defense selection/selling flow in gameplay layer + minimal debug UI wiring
+- Data: no schema/id changes
+- UI: selected-defense and sell controls in existing debug panel
+- Balance: refund policy by round
+- Docs: CR tracking update
+
+Decision:
+
+Implement a minimal sell loop for the single existing defense only, with refund policy in gameplay controller logic and sell disabled during running waves.
+
+Implementation notes:
+
+- Added clickable defense hit area in `defense_base.tscn` and click signal in `DefenseActor`.
+- Extended `DefenseController` with:
+  - selection tracking
+  - pad-to-defense ownership release on sell
+  - sell guards (`WaveController.is_running()`)
+  - refund formula:
+    - rounds 1-2: 80% of `base_cost`
+    - round 3+: 70% of `base_cost`
+- Added compact debug UI fields in gameplay panel:
+  - selected defense id
+  - sell refund amount
+  - sell button
+- Selling removes defense node, releases pad occupancy, and refunds gold through `RunState.add_gold`.
+- Extended smoke validation with deterministic checks for:
+  - build -> select -> sell
+  - refund amount correctness
+  - pad becomes buildable again
+  - sell blocked during wave running
+
+Files likely affected:
+
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/gameplay/defense_actor.gd`
+- `scenes/defenses/defense_base.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/gameplay/gameplay_root.tscn`
+- `tools/validate_flow_smoke.gd`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Selection UX is intentionally debug-minimal and may need polish when a full shop/interaction UI is added.
+
+Acceptance criteria:
+
+- Build phase defense can be selected and sold.
+- Refund amount follows round policy.
+- Selling releases occupied pad and allows rebuilding.
+- Selling is blocked during wave running.
+- Existing run/wave/reward flow remains intact.
