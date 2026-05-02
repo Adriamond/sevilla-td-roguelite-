@@ -410,3 +410,60 @@ Acceptance criteria:
 - UI does not cover main route.
 - Enemy movement/leaks/reward transition flow remains intact.
 - No new gameplay scope introduced.
+
+---
+
+## CR-005 - Extract run progression logic from UI and add flow smoke validation
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Move run progression ownership out of UI and add deterministic headless smoke validation for the MVP run flow.
+
+Affected areas:
+
+- Design: architecture ownership clarity (UI thinness)
+- Code: run progression rules moved to gameplay layer
+- Data: no new schema or content ids
+- UI: `boot_controller` reduced to orchestration and screen routing
+- Balance: no new gameplay scope; existing reward formula preserved
+- Docs: CR/task tracking update
+
+Decision:
+
+Concentrate progression decisions in `RunController` (wave completion reward payout, reward acceptance progression, final-round victory, defeat handling, and round definition resolution) and add `validate_flow_smoke.gd` to validate the non-rendering flow path in CI/local checks.
+
+Implementation notes:
+
+- `RunController` now owns high-level run progression methods and round/reward policy.
+- `boot_controller` now delegates progression decisions to `RunController`.
+- Added headless flow smoke validation for:
+  - start run into ROOM
+  - ROOM -> BUILD_PHASE -> WAVE_RUNNING transitions
+  - wave completion reward payout
+  - REWARD_SELECTION entry
+  - reward acceptance returning to ROOM and incrementing round
+- No towers/combat/targeting/placement logic added.
+
+Files likely affected:
+
+- `scripts/gameplay/run_controller.gd`
+- `scripts/ui/boot_controller.gd`
+- `tools/validate_flow_smoke.gd`
+- `tools/run_validation.ps1`
+- `docs/change_requests.md`
+- `docs/codex_tasks.md`
+
+Risks:
+
+- If UI assumes old direct mutations, flow could regress.
+- Smoke test scope is intentionally narrow and does not replace full gameplay integration tests.
+
+Acceptance criteria:
+
+- Run progression logic is owned by gameplay layer instead of UI.
+- Flow smoke validation passes headlessly.
+- Existing content/project validations remain intact.
+- No new gameplay scope (towers/combat) introduced.

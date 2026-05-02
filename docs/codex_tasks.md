@@ -64,7 +64,7 @@ Acceptance:
 
 ## Phase 2 - Run state machine
 
-Status: implemented (CR-003 minimal placeholder navigation).
+Status: implemented (CR-003 minimal placeholder navigation; CR-005 moved progression/reward decisions from UI into gameplay controller and added headless flow smoke validation).
 
 Implement states:
 

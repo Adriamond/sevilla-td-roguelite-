@@ -31,5 +31,13 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+Write-Host "Running flow smoke validation..."
+& $godotExe --headless --path . --script res://tools/validate_flow_smoke.gd
+Write-Host "validate_flow_smoke exit code: $LASTEXITCODE"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Flow smoke validation failed."
+    exit $LASTEXITCODE
+}
+
 Write-Host "All Godot validations passed."
 exit 0

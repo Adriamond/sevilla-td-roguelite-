@@ -100,10 +100,10 @@ func _on_quit_requested() -> void:
 	get_tree().quit()
 
 func _on_room_continue_requested() -> void:
-	_run_controller.transition_to(RunController.RunStateType.BUILD_PHASE)
+	_run_controller.continue_from_room()
 
 func _on_start_wave_requested() -> void:
-	_run_controller.transition_to(RunController.RunStateType.WAVE_RUNNING)
+	_run_controller.start_current_wave()
 
 func _on_force_complete_wave_requested() -> void:
 	var gameplay_ui: GameplayRootController = _active_screen as GameplayRootController
@@ -112,35 +112,13 @@ func _on_force_complete_wave_requested() -> void:
 	gameplay_ui.force_complete_wave()
 
 func _on_wave_completed() -> void:
-	var run_state: Node = _run_state()
-	if int(run_state.get("core_hp")) <= 0:
-		_run_controller.end_run(false)
-		return
-
-	var current_round: int = int(run_state.get("current_round"))
-	var round_reward_gold: int = 45 + 15 * current_round
-	run_state.call("add_gold", round_reward_gold)
-	_run_controller.transition_to(RunController.RunStateType.REWARD_SELECTION)
+	_run_controller.handle_wave_completed()
 
 func _on_core_depleted() -> void:
-	_run_controller.end_run(false)
+	_run_controller.handle_core_depleted()
 
 func _on_reward_chosen(item_id: String) -> void:
-	if item_id.is_empty():
-		return
-	var run_state: Node = _run_state()
-	var picked_item_ids: Array[String] = run_state.get("picked_item_ids")
-	picked_item_ids.append(item_id)
-	run_state.set("picked_item_ids", picked_item_ids)
-
-	var current_round: int = int(run_state.get("current_round"))
-	if current_round >= 6:
-		_run_controller.end_run(true)
-		return
-
-	run_state.set("current_round", current_round + 1)
-	run_state.get("round_changed").emit(int(run_state.get("current_round")))
-	_run_controller.transition_to(RunController.RunStateType.ROOM)
+	_run_controller.accept_reward(item_id)
 
 func _on_run_state_changed(new_state: RunController.RunStateType) -> void:
 	match new_state:
@@ -193,9 +171,4 @@ func _content_db() -> Node:
 	return get_node("/root/ContentDB")
 
 func _get_current_round_def() -> Resource:
-	var run_state: Node = _run_state()
-	var round_index: int = int(run_state.get("current_round"))
-	var round_id: String = "round_%02d" % round_index
-	if round_index >= 6:
-		round_id = "round_06_boss"
-	return _content_db().call("get_round", round_id)
+	return _run_controller.get_current_round_def()
