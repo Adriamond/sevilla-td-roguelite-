@@ -1,39 +1,94 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/gameplay_root_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/gameplay/path_controller.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/gameplay/spawn_controller.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/gameplay/wave_controller.gd" id="4"]
 
-[node name="GameplayRoot" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="GameplayRoot" type="Node2D"]
 script = ExtResource("1")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -170.0
-offset_top = -90.0
-offset_right = 170.0
-offset_bottom = 90.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="MainCamera" type="Camera2D" parent="."]
+position = Vector2(480, 270)
+enabled = true
 
-[node name="PhaseLabel" type="Label" parent="VBoxContainer"]
+[node name="MapContainer" type="Node2D" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Build Phase (Placeholder)"
-horizontal_alignment = 1
 
-[node name="PhaseActionButton" type="Button" parent="VBoxContainer"]
+[node name="EnemyLayer" type="Node2D" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Start Dummy Wave"
 
-[connection signal="pressed" from="VBoxContainer/PhaseActionButton" to="." method="request_phase_action"]
+[node name="Systems" type="Node" parent="."]
+
+[node name="PathController" type="Node" parent="Systems"]
+unique_name_in_owner = true
+script = ExtResource("2")
+
+[node name="SpawnController" type="Node" parent="Systems"]
+unique_name_in_owner = true
+script = ExtResource("3")
+
+[node name="WaveController" type="Node" parent="Systems"]
+unique_name_in_owner = true
+script = ExtResource("4")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="DebugPanel" type="ColorRect" parent="UILayer"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 184.0
+offset_bottom = 166.0
+color = Color(0.06, 0.08, 0.12, 0.78)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/DebugPanel"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 166.0
+offset_bottom = 148.0
+
+[node name="PhaseLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "Build Phase"
+theme_override_font_sizes/font_size = 12
+
+[node name="RoundLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Round:"
+theme_override_font_sizes/font_size = 11
+
+[node name="RoundValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "1"
+theme_override_font_sizes/font_size = 11
+
+[node name="CoreHPLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Core HP:"
+theme_override_font_sizes/font_size = 11
+
+[node name="CoreHPValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "20"
+theme_override_font_sizes/font_size = 11
+
+[node name="ActiveEnemiesLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+text = "Active enemies:"
+theme_override_font_sizes/font_size = 11
+
+[node name="ActiveEnemiesValueLabel" type="Label" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "0"
+theme_override_font_sizes/font_size = 11
+
+[node name="PhaseActionButton" type="Button" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "Start Wave"
+theme_override_font_sizes/font_size = 11
+
+[node name="ForceCompleteButton" type="Button" parent="UILayer/DebugPanel/VBoxContainer"]
+unique_name_in_owner = true
+text = "[DEBUG] Force Complete"
+visible = false
+theme_override_font_sizes/font_size = 10
+
+[connection signal="pressed" from="UILayer/DebugPanel/VBoxContainer/PhaseActionButton" to="." method="request_phase_action"]
+[connection signal="pressed" from="UILayer/DebugPanel/VBoxContainer/ForceCompleteButton" to="." method="request_force_complete"]

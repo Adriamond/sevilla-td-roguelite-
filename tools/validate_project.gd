@@ -7,7 +7,9 @@ const SCENE_SPECS: Array[Dictionary] = [
 	{"scene": "res://scenes/gameplay/gameplay_root.tscn", "root_script": "res://scripts/ui/gameplay_root_controller.gd"},
 	{"scene": "res://scenes/ui/reward_screen.tscn", "root_script": "res://scripts/ui/reward_screen_controller.gd"},
 	{"scene": "res://scenes/ui/victory_screen.tscn", "root_script": "res://scripts/ui/end_screen_controller.gd"},
-	{"scene": "res://scenes/ui/defeat_screen.tscn", "root_script": "res://scripts/ui/end_screen_controller.gd"}
+	{"scene": "res://scenes/ui/defeat_screen.tscn", "root_script": "res://scripts/ui/end_screen_controller.gd"},
+	{"scene": "res://scenes/maps/pino_montano/pino_montano_map.tscn", "root_script": ""},
+	{"scene": "res://scenes/enemies/enemy_base.tscn", "root_script": "res://scripts/gameplay/enemy_actor.gd"}
 ]
 
 func _init() -> void:
@@ -29,16 +31,17 @@ func _init() -> void:
 			quit(1)
 			return
 
-		var root_script: Script = instance.get_script()
-		if root_script == null:
-			print("Project validation failed: root script did not compile for scene: ", scene_path)
-			quit(1)
-			return
-		if root_script.resource_path != root_script_path:
-			print("Project validation failed: unexpected root script for scene: ", scene_path)
-			print("Expected: ", root_script_path, " | Got: ", root_script.resource_path)
-			quit(1)
-			return
+		if not root_script_path.is_empty():
+			var root_script: Script = instance.get_script()
+			if root_script == null:
+				print("Project validation failed: root script did not compile for scene: ", scene_path)
+				quit(1)
+				return
+			if root_script.resource_path != root_script_path:
+				print("Project validation failed: unexpected root script for scene: ", scene_path)
+				print("Expected: ", root_script_path, " | Got: ", root_script.resource_path)
+				quit(1)
+				return
 
 		instance.queue_free()
 

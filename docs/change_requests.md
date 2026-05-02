@@ -234,3 +234,179 @@ Acceptance criteria:
 - Round increments after reward choice.
 - Round 6 completion reaches Victory.
 - No enemy/spawn/defense/combat gameplay implemented.
+
+---
+
+## CR-004 — Placeholder map, path movement, wave spawning and leak damage
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Replace dummy-wave flow with first real MVP wave loop: map load, fixed path movement, round-based spawning, leak damage, and wave completion into rewards.
+
+Affected areas:
+
+- Design: placeholder map readability and flow continuity
+- Code: wave/spawn/path gameplay systems and gameplay scene integration
+- Data: existing RoundDef/EnemyDef content consumption only
+- UI: gameplay placeholder controls/status updates
+- Balance: round reward payout preserved
+- Docs: CR tracking and Phase 3 status note
+
+Decision:
+
+Implement a minimal real wave loop with fixed `Path2D` and leak handling, while explicitly excluding defenses, targeting, and combat.
+
+Implementation notes:
+
+- Added/updated placeholder map scene with `MainPath` `Path2D` and simple route visuals.
+- Enemy placeholder now moves along assigned path and emits reach-end/removal signals.
+- `WaveController` schedules `wave_steps` spawns via intervals and start delays.
+- `SpawnController` instantiates enemies from `EnemyDef.scene_path` and assigns the main path.
+- Leak at path end calls `RunState.damage_core(leak_damage)`.
+- Wave completes when all planned spawns are done and active enemies are resolved.
+- Core HP <= 0 transitions to Defeat; otherwise wave completion transitions to Reward Selection via existing flow.
+- No tower placement, targeting, damage combat, or enemy attacks were added.
+
+Files likely affected:
+
+- `scenes/maps/pino_montano/pino_montano_map.tscn`
+- `scenes/enemies/enemy_base.tscn`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/gameplay/path_controller.gd`
+- `scripts/gameplay/spawn_controller.gd`
+- `scripts/gameplay/wave_controller.gd`
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/ui/boot_controller.gd`
+- `tools/validate_project.gd`
+
+Risks:
+
+- Placeholder movement speed may need tuning for readability.
+- Async spawn timing may need tightening under low frame rates.
+
+Acceptance criteria:
+
+- Start Run reaches gameplay wave flow from Room.
+- Start Wave spawns enemies from `RoundDef.wave_steps`.
+- Enemies move visibly along fixed path.
+- Enemies leaking reduce core HP.
+- Wave completion transitions to Reward Selection.
+- Reward selection returns to Room and increments round.
+- Core HP depletion transitions to Defeat.
+- No tower/combat systems implemented.
+
+---
+
+## CR-004B — Readability pass for placeholder gameplay wave
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Improve manual readability/testability of the CR-004 placeholder wave without expanding gameplay scope.
+
+Affected areas:
+
+- Design: placeholder visual clarity
+- Code: minor debug readability pacing and UI status display
+- Data: round pacing tweak for observation
+- UI: compact gameplay panel and non-obstructive layout
+- Balance: temporary readability-oriented pacing for manual testing
+- Docs: CR tracking update
+
+Decision:
+
+Apply a readability-focused pass only: larger test window, compact overlay, high-contrast map/path/enemy visuals, and slower observable wave pacing. No new gameplay systems.
+
+Implementation notes:
+
+- Increased gameplay window readability (`960x540`) with preserved stretch behavior.
+- Gameplay HUD panel made smaller and kept out of path-critical area.
+- Gameplay panel now shows only phase, round, core HP, active enemies, start wave, and debug force-complete.
+- Map visuals updated to darker background with clearer high-contrast route and START/END markers.
+- Enemy placeholder made larger with strong contrast and simple outline.
+- Enemy runtime movement reduced via local debug speed scale.
+- Round 1 spawn interval increased for easier visual confirmation.
+- No towers/defenses/targeting/combat/final art added.
+
+Files likely affected:
+
+- `project.godot`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/maps/pino_montano/pino_montano_map.tscn`
+- `scenes/enemies/enemy_base.tscn`
+- `scripts/gameplay/enemy_actor.gd`
+- `data/rounds/round_01.tres`
+
+Risks:
+
+- Readability tuning may diverge from final balancing targets.
+- Large debug window settings may differ from eventual shipping defaults.
+
+Acceptance criteria:
+
+- Gameplay area is easier to inspect manually.
+- UI no longer blocks most of the path.
+- Path/start/end/enemies are clearly visible.
+- Active enemies counter changes visibly during wave.
+- Leak damage and wave-complete-to-reward flow remain intact.
+- No new gameplay scope introduced.
+
+---
+
+## CR-004C — Gameplay viewport fit, map framing and debug UI readability
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Ensure placeholder gameplay occupies the visible debug viewport comfortably, with full path visibility and non-obstructive compact debug UI.
+
+Affected areas:
+
+- Design: gameplay framing/readability
+- Code: gameplay root presentation/framing updates
+- Data: no schema/id changes
+- UI: compact debug overlay positioning
+- Balance: no gameplay-scope expansion
+- Docs: CR tracking update
+
+Decision:
+
+Keep placeholder/debug scope and improve only framing and readability: stable viewport fit, deterministic camera framing, path margins, compact panel.
+
+Implementation notes:
+
+- Gameplay root converted to `Node2D` host with fixed `Camera2D` framing.
+- Map occupies most of 960x540 view with safe margins and full route visibility.
+- Path redraw uses wider high-contrast route across a meaningful screen area.
+- START/END markers and labels remain fully visible.
+- Debug panel reduced and kept in top-left margin with semi-transparent dark background.
+- Debug panel shows only phase, round, core HP, active enemies, start wave, and optional force-complete debug action.
+- No towers/defenses/targeting/combat/final art added.
+
+Files likely affected:
+
+- `project.godot`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/maps/pino_montano/pino_montano_map.tscn`
+
+Risks:
+
+- Debug viewport/framing settings may differ from future shipping presentation.
+
+Acceptance criteria:
+
+- Gameplay map occupies most of visible window.
+- Full path from START to END is visible and not clipped.
+- UI does not cover main route.
+- Enemy movement/leaks/reward transition flow remains intact.
+- No new gameplay scope introduced.

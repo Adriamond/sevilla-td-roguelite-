@@ -1,2 +1,66 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="Curve2D" id="Curve2D_main"]
+_data = {
+"points": PackedFloat32Array(80, 460, 0, 0, 0, 0, 260, 460, 0, 0, 0, 0, 260, 360, 0, 0, 0, 0, 430, 360, 0, 0, 0, 0, 430, 260, 0, 0, 0, 0, 620, 260, 0, 0, 0, 0, 620, 150, 0, 0, 0, 0, 860, 150, 0, 0, 0, 0, 900, 90, 0, 0, 0, 0),
+"tilts": PackedFloat32Array(),
+"closed": false
+}
+
 [node name="PinoMontanoMap" type="Node2D"]
+
+[node name="Background" type="Polygon2D" parent="."]
+color = Color(0.05, 0.08, 0.11, 1)
+polygon = PackedVector2Array(20, 20, 940, 20, 940, 520, 20, 520)
+
+[node name="MainPath" type="Path2D" parent="."]
+curve = SubResource("Curve2D_main")
+
+[node name="PathVisual" type="Line2D" parent="."]
+default_color = Color(0.95, 0.82, 0.22, 1)
+width = 28.0
+joint_mode = 1
+points = PackedVector2Array(80, 460, 260, 460, 260, 360, 430, 360, 430, 260, 620, 260, 620, 150, 860, 150, 900, 90)
+
+[node name="StartMarker" type="Polygon2D" parent="."]
+color = Color(0.13, 0.93, 0.35, 1)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+position = Vector2(80, 460)
+
+[node name="EndMarker" type="Polygon2D" parent="."]
+color = Color(0.95, 0.22, 0.22, 1)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+position = Vector2(900, 90)
+
+[node name="StartText" type="Label" parent="."]
+offset_left = 34.0
+offset_top = 482.0
+offset_right = 112.0
+offset_bottom = 506.0
+text = "START"
+theme_override_colors/font_color = Color(0.88, 1, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="EndText" type="Label" parent="."]
+offset_left = 906.0
+offset_top = 104.0
+offset_right = 944.0
+offset_bottom = 128.0
+text = "END"
+theme_override_colors/font_color = Color(1, 0.88, 0.88, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="PadPlaceholder1" type="Polygon2D" parent="."]
+color = Color(0.3, 0.38, 0.5, 0.85)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+position = Vector2(335, 458)
+
+[node name="PadPlaceholder2" type="Polygon2D" parent="."]
+color = Color(0.3, 0.38, 0.5, 0.85)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+position = Vector2(525, 320)
+
+[node name="PadPlaceholderWall" type="Polygon2D" parent="."]
+color = Color(0.3, 0.38, 0.5, 0.85)
+polygon = PackedVector2Array(-12, -18, 12, -18, 12, 18, -12, 18)
+position = Vector2(760, 220)

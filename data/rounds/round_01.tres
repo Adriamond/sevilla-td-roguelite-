@@ -7,7 +7,7 @@
 script = ExtResource("2")
 enemy_id = "tactichandal_runner"
 count = 8
-spawn_interval = 1.0
+spawn_interval = 1.35
 start_delay = 0.0
 path_id = "main"
 is_elite = false

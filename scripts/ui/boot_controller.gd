@@ -45,17 +45,26 @@ func _show_build_phase() -> void:
 	var gameplay_ui: GameplayRootController = _show_screen(GAMEPLAY_SCENE) as GameplayRootController
 	if gameplay_ui == null:
 		return
+	var round_def: Resource = _get_current_round_def()
+	gameplay_ui.prepare_round(round_def)
 	gameplay_ui.show_build_phase()
-	gameplay_ui.start_dummy_wave_requested.connect(_on_start_dummy_wave_requested)
-	gameplay_ui.complete_dummy_wave_requested.connect(_on_complete_dummy_wave_requested)
+	gameplay_ui.start_wave_requested.connect(_on_start_wave_requested)
+	gameplay_ui.force_complete_wave_requested.connect(_on_force_complete_wave_requested)
+	gameplay_ui.wave_completed.connect(_on_wave_completed)
+	gameplay_ui.core_depleted.connect(_on_core_depleted)
 
 func _show_wave_running() -> void:
 	var gameplay_ui: GameplayRootController = _show_screen(GAMEPLAY_SCENE) as GameplayRootController
 	if gameplay_ui == null:
 		return
+	var round_def: Resource = _get_current_round_def()
+	gameplay_ui.prepare_round(round_def)
 	gameplay_ui.show_wave_running()
-	gameplay_ui.start_dummy_wave_requested.connect(_on_start_dummy_wave_requested)
-	gameplay_ui.complete_dummy_wave_requested.connect(_on_complete_dummy_wave_requested)
+	gameplay_ui.start_wave()
+	gameplay_ui.start_wave_requested.connect(_on_start_wave_requested)
+	gameplay_ui.force_complete_wave_requested.connect(_on_force_complete_wave_requested)
+	gameplay_ui.wave_completed.connect(_on_wave_completed)
+	gameplay_ui.core_depleted.connect(_on_core_depleted)
 
 func _show_reward_selection() -> void:
 	var reward_screen: RewardScreenController = _show_screen(REWARD_SCENE) as RewardScreenController
@@ -93,10 +102,16 @@ func _on_quit_requested() -> void:
 func _on_room_continue_requested() -> void:
 	_run_controller.transition_to(RunController.RunStateType.BUILD_PHASE)
 
-func _on_start_dummy_wave_requested() -> void:
+func _on_start_wave_requested() -> void:
 	_run_controller.transition_to(RunController.RunStateType.WAVE_RUNNING)
 
-func _on_complete_dummy_wave_requested() -> void:
+func _on_force_complete_wave_requested() -> void:
+	var gameplay_ui: GameplayRootController = _active_screen as GameplayRootController
+	if gameplay_ui == null:
+		return
+	gameplay_ui.force_complete_wave()
+
+func _on_wave_completed() -> void:
 	var run_state: Node = _run_state()
 	if int(run_state.get("core_hp")) <= 0:
 		_run_controller.end_run(false)
@@ -106,6 +121,9 @@ func _on_complete_dummy_wave_requested() -> void:
 	var round_reward_gold: int = 45 + 15 * current_round
 	run_state.call("add_gold", round_reward_gold)
 	_run_controller.transition_to(RunController.RunStateType.REWARD_SELECTION)
+
+func _on_core_depleted() -> void:
+	_run_controller.end_run(false)
 
 func _on_reward_chosen(item_id: String) -> void:
 	if item_id.is_empty():
@@ -173,3 +191,11 @@ func _run_state() -> Node:
 
 func _content_db() -> Node:
 	return get_node("/root/ContentDB")
+
+func _get_current_round_def() -> Resource:
+	var run_state: Node = _run_state()
+	var round_index: int = int(run_state.get("current_round"))
+	var round_id: String = "round_%02d" % round_index
+	if round_index >= 6:
+		round_id = "round_06_boss"
+	return _content_db().call("get_round", round_id)

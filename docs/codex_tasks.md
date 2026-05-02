@@ -85,6 +85,8 @@ Acceptance:
 
 ## Phase 3 - Map and spawning
 
+Status: implemented (CR-004 minimal real wave loop: map/path/spawn/movement/leak).
+
 Implement:
 
 * Pino Montano placeholder map
