@@ -23,9 +23,11 @@ var _already_reached_end: bool = false
 @onready var type_label: Label = get_node_or_null("%TypeLabel")
 @onready var body_polygon: Polygon2D = get_node_or_null("%Body")
 @onready var health_bar: ProgressBar = get_node_or_null("%HealthBar")
+@onready var hit_label: Label = get_node_or_null("%HitLabel")
 
 var _default_body_color: Color = Color(1, 0.22, 0.35, 1)
 var _hit_flash_timer: float = 0.0
+var _hit_label_timer: float = 0.0
 
 func setup_from_def(enemy_def: Resource, path: Path2D, is_elite: bool = false) -> void:
 	enemy_id = String(enemy_def.get("id"))
@@ -64,6 +66,10 @@ func _process(delta: float) -> void:
 		_hit_flash_timer = max(0.0, _hit_flash_timer - delta)
 		if _hit_flash_timer <= 0.0 and body_polygon != null:
 			body_polygon.color = _default_body_color
+	if _hit_label_timer > 0.0:
+		_hit_label_timer = max(0.0, _hit_label_timer - delta)
+		if _hit_label_timer <= 0.0 and hit_label != null:
+			hit_label.visible = false
 
 	_distance_travelled += max(speed, 0.0) * SPEED_SCALE * delta
 	if _distance_travelled >= _path_length:
@@ -99,6 +105,10 @@ func apply_damage(amount: float) -> bool:
 	if body_polygon != null:
 		body_polygon.color = Color(1.0, 1.0, 1.0, 1.0)
 		_hit_flash_timer = 0.08
+	if hit_label != null:
+		hit_label.text = "-%.1f" % amount
+		hit_label.visible = true
+		_hit_label_timer = 0.22
 	if current_hp > 0.0:
 		return false
 	if not _already_reached_end:

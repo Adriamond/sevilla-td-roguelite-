@@ -1143,3 +1143,146 @@ Acceptance criteria:
 - Selling after participation uses round formula.
 - Debug action/sell controls remain reachable.
 - Existing run/wave/reward flow remains intact.
+
+---
+
+## CR-010 - Single upgrade level for manguerazo
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Allow the player to invest in an already placed `manguerazo` with one simple upgrade step during Build Phase.
+
+Affected areas:
+
+- Design: incremental progression on persistent defenses
+- Code: defense level/upgrade state, upgrade economy, selected-defense UI controls
+- Data: no schema/id changes
+- UI: selected-defense panel now shows level and upgrade data
+- Balance: one fixed upgrade cost and one fixed damage multiplier
+- Docs: CR tracking update
+
+Decision:
+
+Implement exactly one upgrade level (`1 -> 2`) with fixed cost `45` and `+50%` damage, only during Build Phase. Keep all upgrade/refund calculations in gameplay layer.
+
+Implementation notes:
+
+- `DefenseActor` now tracks:
+  - `level` (starts at 1, max 2)
+  - `total_invested_cost`
+  - one-shot upgrade method and upgrade cost getter
+- Upgrade behavior:
+  - cost: `45`
+  - effect: `damage *= 1.5`
+  - range/fire rate unchanged
+- `DefenseController` now provides:
+  - selected-upgrade eligibility checks
+  - upgrade execution with `RunState.spend_gold()`
+  - upgrade failure reasons
+  - sell refund based on `total_invested_cost`:
+    - never participated: 100%
+    - participated rounds 1-2: 80%
+    - participated round 3+: 70%
+- `GameplayRootController` selected-defense UI now shows:
+  - defense id
+  - level
+  - upgrade cost
+  - sell refund
+  - Upgrade button
+  - Sell button
+- Upgrade is disabled during wave running and at max level.
+- Extended smoke validation to cover:
+  - upgrade in build phase
+  - max-level lockout
+  - pre-wave full refund of upgraded investment
+  - post-wave formula refund from total invested cost
+  - upgrade persistence into next build phase
+- Extended project validation with level/upgrade sanity checks for `DefenseActor`.
+
+Files likely affected:
+
+- `scripts/gameplay/defense_actor.gd`
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/gameplay/gameplay_root.tscn`
+- `tools/validate_flow_smoke.gd`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Upgrade UI is intentionally debug-minimal and may be replaced when a full shop panel is introduced.
+
+Acceptance criteria:
+
+- Selected `manguerazo` upgrades once during Build Phase.
+- Upgrade cost/gold spend and max-level lockout behave correctly.
+- Upgrade persists across round transitions in same run.
+- Sell refund uses total invested cost with existing participation rules.
+- Existing run/wave/reward flow remains intact.
+
+---
+
+## CR-010B - Verify upgrade stats and split gameplay debug UI panels
+
+Status: implemented
+Date: 2026-05-02
+
+Requester intent:
+
+Make upgrade impact explicitly visible/verified and prevent critical gameplay controls from being pushed off-screen by a growing single debug panel.
+
+Affected areas:
+
+- Design: debug UX clarity and panel responsibility split
+- Code: selected-defense stat presentation and hit feedback
+- Data: no schema/id changes
+- UI: split debug layout into status/defense/actions panels
+- Balance: no new upgrade levels; existing +50% single upgrade preserved
+- Docs: CR tracking update
+
+Decision:
+
+Keep the one-level upgrade scope and reorganize gameplay debug UI into dedicated compact panels so `Start Wave` and `[DEBUG] Force Complete` remain visible, while exposing selected defense combat stats directly.
+
+Implementation notes:
+
+- Split gameplay debug UI into three panels:
+  - run/wave status panel (top-left)
+  - selected-defense panel (right side)
+  - action/debug controls panel (bottom-left)
+- Selected-defense panel now shows:
+  - id
+  - level
+  - damage
+  - range
+  - fire rate
+  - upgrade cost
+  - sell refund
+  - upgrade/sell buttons
+- Added lightweight hit feedback to enemy actor via short-lived per-hit damage label (e.g. `-18.0`), improving in-wave upgrade effect readability.
+- Extended flow smoke validation to assert exact upgrade damage formula:
+  - level 2 damage == level 1 damage * 1.5
+- Existing upgrade/sell/refund/persistence behavior remains intact.
+
+Files likely affected:
+
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scenes/enemies/enemy_base.tscn`
+- `scripts/gameplay/enemy_actor.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Debug panel layout remains placeholder-oriented and may be revised when a full gameplay HUD/shop is introduced.
+
+Acceptance criteria:
+
+- Upgrade stat increase is visible in selected-defense UI and validated in automated checks.
+- Action controls remain visible and clickable in their own panel.
+- Existing build/sell/upgrade/wave/reward flow remains working.

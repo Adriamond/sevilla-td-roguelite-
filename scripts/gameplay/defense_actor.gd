@@ -4,12 +4,17 @@ class_name DefenseActor
 
 signal defense_clicked(defense: DefenseActor)
 
+const MAX_LEVEL: int = 2
+const UPGRADE_COST: int = 45
+
 var defense_id: String = ""
 var damage: float = 1.0
 var attack_range: float = 64.0
 var fire_rate: float = 1.0
 var targeting_mode: String = "first"
 var base_cost: int = 0
+var level: int = 1
+var total_invested_cost: int = 0
 var has_participated_in_wave: bool = false
 
 var _cooldown: float = 0.0
@@ -25,6 +30,8 @@ var _beam_timer: float = 0.0
 func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> void:
 	defense_id = String(defense_def.get("id"))
 	base_cost = int(defense_def.get("base_cost"))
+	level = 1
+	total_invested_cost = base_cost
 	damage = float(defense_def.get("base_damage"))
 	attack_range = float(defense_def.get("base_range"))
 	fire_rate = max(float(defense_def.get("base_fire_rate")), 0.1)
@@ -102,3 +109,19 @@ func _on_click_area_input_event(_viewport: Viewport, event: InputEvent, _shape_i
 
 func mark_participated_in_wave() -> void:
 	has_participated_in_wave = true
+
+func can_upgrade() -> bool:
+	return level < MAX_LEVEL
+
+func get_upgrade_cost() -> int:
+	if not can_upgrade():
+		return 0
+	return UPGRADE_COST
+
+func apply_upgrade() -> bool:
+	if not can_upgrade():
+		return false
+	level += 1
+	damage *= 1.5
+	total_invested_cost += UPGRADE_COST
+	return true

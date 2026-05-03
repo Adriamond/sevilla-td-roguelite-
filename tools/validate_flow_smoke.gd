@@ -148,9 +148,29 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(String(gameplay.call("get_selected_defense_id")) == "manguerazo", "Expected selected defense id to be manguerazo."):
 		return false
+	if not _assert_true(int(gameplay.call("get_selected_level")) == 1, "Expected initial selected defense level to be 1."):
+		return false
+	var level_1_damage: float = float(gameplay.call("get_selected_damage"))
+	if not _assert_true(level_1_damage > 0.0, "Expected positive level 1 selected defense damage."):
+		return false
+	if not _assert_true(int(gameplay.call("get_selected_upgrade_cost")) == 45, "Expected selected upgrade cost to be 45 at level 1."):
+		return false
+	if not _assert_true(bool(gameplay.call("upgrade_selected_for_debug")), "Expected upgrading selected defense in build phase to succeed."):
+		return false
+	if not _assert_true(int(gameplay.call("get_selected_level")) == 2, "Expected defense level to become 2 after upgrade."):
+		return false
+	var level_2_damage: float = float(gameplay.call("get_selected_damage"))
+	if not _assert_true(level_2_damage > level_1_damage, "Expected level 2 damage to be greater than level 1 damage."):
+		return false
+	if not _assert_true(is_equal_approx(level_2_damage, level_1_damage * 1.5), "Expected level 2 damage to be level 1 damage * 1.5."):
+		return false
+	if not _assert_true(int(gameplay.call("get_selected_upgrade_cost")) == 0, "Expected no further upgrade cost at max level."):
+		return false
+	if not _assert_true(not bool(gameplay.call("upgrade_selected_for_debug")), "Expected second upgrade attempt to fail at max level."):
+		return false
 	var gold_before_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
 	var refund: int = int(gameplay.call("sell_selected_for_debug"))
-	if not _assert_true(refund == 55, "Expected pre-wave sell refund to be 55 gold (100% of 55)."):
+	if not _assert_true(refund == 100, "Expected pre-wave upgraded sell refund to be 100 gold (100% of total invested cost)."):
 		return false
 	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_sell + refund, "Expected gold to increase by sell refund."):
 		return false
@@ -160,6 +180,10 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(bool(gameplay.call("build_debug_first_pad")), "Expected first pad to be buildable again after selling."):
 		return false
 	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense rebuild after sell to succeed."):
+		return false
+	if not _assert_true(bool(gameplay.call("select_first_defense_for_debug")), "Expected selecting rebuilt defense to succeed before wave start."):
+		return false
+	if not _assert_true(bool(gameplay.call("upgrade_selected_for_debug")), "Expected upgrading rebuilt defense to succeed before wave."):
 		return false
 
 	boot.call("_on_start_wave_requested")
@@ -172,6 +196,8 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(int(gameplay_after_wave_start.call("get_defense_count")) == 1, "Expected defense to persist from build to wave."):
 		return false
 	if not _assert_true(bool(gameplay_after_wave_start.call("select_first_defense_for_debug")), "Expected selecting defense in wave phase to still work for UI/debug checks."):
+		return false
+	if not _assert_true(not bool(gameplay_after_wave_start.call("upgrade_selected_for_debug")), "Expected upgrading to be blocked during Wave Running."):
 		return false
 	if not _assert_true(int(gameplay_after_wave_start.call("sell_selected_for_debug")) == 0, "Expected selling to be blocked during Wave Running."):
 		return false
@@ -192,11 +218,13 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(bool(gameplay_next_round.call("select_first_defense_for_debug")), "Expected selecting persisted defense in next build phase to succeed."):
 		return false
-	if not _assert_true(int(gameplay_next_round.call("get_selected_refund_amount")) == 44, "Expected post-wave refund to follow round formula (80% on round 2)."):
+	if not _assert_true(int(gameplay_next_round.call("get_selected_level")) == 2, "Expected upgraded defense level to persist into next round build phase."):
+		return false
+	if not _assert_true(int(gameplay_next_round.call("get_selected_refund_amount")) == 80, "Expected post-wave refund to follow total-invested formula (80% of 100 on round 2)."):
 		return false
 	var gold_before_post_wave_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
 	var post_wave_refund: int = int(gameplay_next_round.call("sell_selected_for_debug"))
-	if not _assert_true(post_wave_refund == 44, "Expected sell refund after one participated wave to be 44 gold in round 2."):
+	if not _assert_true(post_wave_refund == 80, "Expected sell refund after one participated wave to be 80 gold in round 2."):
 		return false
 	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_post_wave_sell + post_wave_refund, "Expected gold to increase by post-wave refund amount."):
 		return false

@@ -113,6 +113,26 @@ func _init() -> void:
 		print("Project validation failed: defense actor did not initialize with manguerazo.")
 		quit(1)
 		return
+	if int(defense_instance.get("level")) != 1:
+		print("Project validation failed: defense actor initial level should be 1.")
+		quit(1)
+		return
+	if not bool(defense_instance.call("can_upgrade")):
+		print("Project validation failed: defense actor should allow one upgrade at level 1.")
+		quit(1)
+		return
+	if not bool(defense_instance.call("apply_upgrade")):
+		print("Project validation failed: defense actor upgrade application failed.")
+		quit(1)
+		return
+	if int(defense_instance.get("level")) != 2:
+		print("Project validation failed: defense actor level should be 2 after upgrade.")
+		quit(1)
+		return
+	if bool(defense_instance.call("can_upgrade")):
+		print("Project validation failed: defense actor should not upgrade beyond level 2 in MVP.")
+		quit(1)
+		return
 	var click_area: Node = defense_instance.get_node_or_null("%ClickArea")
 	if click_area == null:
 		print("Project validation failed: defense actor click area is missing for selection/selling flow.")

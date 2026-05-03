@@ -6,6 +6,8 @@ signal defense_built(defense_id: String)
 signal build_failed(reason: String)
 signal defense_selected(defense: DefenseActor, refund_amount: int)
 signal defense_sold(defense_id: String, refund_amount: int)
+signal defense_upgraded(defense_id: String, level: int, cost: int)
+signal upgrade_failed(reason: String)
 
 var _defense_parent: Node2D = null
 var _wave_controller: WaveController = null
@@ -104,6 +106,18 @@ func can_sell_selected_defense() -> bool:
 		return false
 	return not _wave_controller.is_running()
 
+func can_upgrade_selected_defense() -> bool:
+	if _wave_controller == null:
+		return false
+	var defense: DefenseActor = get_selected_defense()
+	if defense == null:
+		return false
+	if _wave_controller.is_running():
+		return false
+	if not defense.can_upgrade():
+		return false
+	return int(_run_state().get("gold")) >= defense.get_upgrade_cost()
+
 func sell_selected_defense() -> int:
 	if not can_sell_selected_defense():
 		return 0
@@ -119,6 +133,40 @@ func sell_selected_defense() -> int:
 	_selected_defense = null
 	defense_sold.emit(sold_defense_id, refund_amount)
 	return refund_amount
+
+func get_selected_upgrade_cost() -> int:
+	var defense: DefenseActor = get_selected_defense()
+	if defense == null:
+		return 0
+	return defense.get_upgrade_cost()
+
+func upgrade_selected_defense() -> bool:
+	if _wave_controller == null:
+		upgrade_failed.emit("cannot_upgrade")
+		return false
+	var defense: DefenseActor = get_selected_defense()
+	if defense == null:
+		upgrade_failed.emit("no_selection")
+		return false
+	if _wave_controller.is_running():
+		upgrade_failed.emit("wave_running")
+		return false
+	if not defense.can_upgrade():
+		upgrade_failed.emit("max_level")
+		return false
+	var upgrade_cost: int = defense.get_upgrade_cost()
+	if upgrade_cost <= 0:
+		upgrade_failed.emit("cannot_upgrade")
+		return false
+	if not _run_state().call("spend_gold", upgrade_cost):
+		upgrade_failed.emit("not_enough_gold")
+		return false
+	if not defense.apply_upgrade():
+		upgrade_failed.emit("cannot_upgrade")
+		return false
+	defense_upgraded.emit(defense.defense_id, defense.level, upgrade_cost)
+	defense_selected.emit(defense, get_selected_refund_amount())
+	return true
 
 func _is_category_compatible(defense_def: Resource, pad_category: String) -> bool:
 	var defense_category: int = int(defense_def.get("category"))
@@ -155,14 +203,14 @@ func mark_active_defenses_participated() -> void:
 func _calculate_refund_amount(defense: DefenseActor) -> int:
 	if defense == null:
 		return 0
-	var base_cost: int = defense.base_cost
-	if base_cost <= 0:
+	var total_invested_cost: int = defense.total_invested_cost
+	if total_invested_cost <= 0:
 		return 0
 	if not defense.has_participated_in_wave:
-		return base_cost
+		return total_invested_cost
 	var current_round: int = int(_run_state().get("current_round"))
 	var ratio: float = 0.8 if current_round <= 2 else 0.7
-	return int(floor(float(base_cost) * ratio))
+	return int(floor(float(total_invested_cost) * ratio))
 
 func _release_pad_for_defense(defense: DefenseActor) -> void:
 	if defense == null:

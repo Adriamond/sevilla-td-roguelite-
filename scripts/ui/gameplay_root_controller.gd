@@ -16,15 +16,15 @@ signal core_depleted
 @onready var active_enemies_label: Label = %ActiveEnemiesValueLabel
 @onready var spawned_enemies_label: Label = %SpawnedEnemiesValueLabel
 @onready var leaked_enemies_label: Label = %LeakedEnemiesValueLabel
-@onready var viewport_label: Label = %ViewportValueLabel
-@onready var viewport_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/ViewportLabel")
-@onready var camera_zoom_label: Label = %CameraZoomValueLabel
-@onready var camera_zoom_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/CameraZoomLabel")
-@onready var window_size_label: Label = %WindowSizeValueLabel
-@onready var window_size_header_label: Label = get_node_or_null("UILayer/DebugPanel/VBoxContainer/WindowSizeLabel")
 @onready var build_hint_label: Label = %BuildHintLabel
 @onready var selected_defense_label: Label = %SelectedDefenseValueLabel
+@onready var selected_level_label: Label = %SelectedLevelValueLabel
+@onready var selected_damage_label: Label = %SelectedDamageValueLabel
+@onready var selected_range_label: Label = %SelectedRangeValueLabel
+@onready var selected_fire_rate_label: Label = %SelectedFireRateValueLabel
+@onready var upgrade_cost_label: Label = %UpgradeCostValueLabel
 @onready var sell_refund_label: Label = %SellRefundValueLabel
+@onready var upgrade_button: Button = %UpgradeDefenseButton
 @onready var sell_button: Button = %SellDefenseButton
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
@@ -52,6 +52,7 @@ func show_build_phase() -> void:
 	action_button.disabled = false
 	force_complete_button.visible = false
 	force_complete_button.disabled = true
+	upgrade_button.disabled = not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = not defense_controller.can_sell_selected_defense()
 	_set_build_pads_enabled(true)
 	build_hint_label.text = "Click pad to build manguerazo"
@@ -65,6 +66,7 @@ func show_wave_running() -> void:
 	action_button.disabled = true
 	force_complete_button.visible = true
 	force_complete_button.disabled = false
+	upgrade_button.disabled = true
 	sell_button.disabled = true
 	_set_build_pads_enabled(false)
 	build_hint_label.text = "Build disabled during wave"
@@ -139,7 +141,13 @@ func reset_run_runtime() -> void:
 	if defense_controller != null:
 		defense_controller.reset_run_runtime()
 	selected_defense_label.text = "None"
+	selected_level_label.text = "-"
+	selected_damage_label.text = "0"
+	selected_range_label.text = "0"
+	selected_fire_rate_label.text = "0"
+	upgrade_cost_label.text = "0"
 	sell_refund_label.text = "0"
+	upgrade_button.disabled = true
 	sell_button.disabled = true
 	_set_build_pads_enabled(false)
 	_update_status_labels()
@@ -178,7 +186,8 @@ func _ready() -> void:
 	defense_controller.build_failed.connect(_on_build_failed)
 	defense_controller.defense_selected.connect(_on_defense_selected)
 	defense_controller.defense_sold.connect(_on_defense_sold)
-	_set_compact_debug_layout()
+	defense_controller.defense_upgraded.connect(_on_defense_upgraded)
+	defense_controller.upgrade_failed.connect(_on_upgrade_failed)
 	_center_camera()
 	_update_status_labels()
 
@@ -268,19 +277,54 @@ func _on_build_failed(reason: String) -> void:
 func _on_defense_selected(defense: DefenseActor, refund_amount: int) -> void:
 	if defense == null:
 		selected_defense_label.text = "None"
+		selected_level_label.text = "-"
+		selected_damage_label.text = "0"
+		selected_range_label.text = "0"
+		selected_fire_rate_label.text = "0"
+		upgrade_cost_label.text = "0"
 		sell_refund_label.text = "0"
+		upgrade_button.disabled = true
 		sell_button.disabled = true
 		return
 	selected_defense_label.text = defense.defense_id
+	selected_level_label.text = str(defense.level)
+	selected_damage_label.text = "%.1f" % defense.damage
+	selected_range_label.text = "%.1f" % defense.attack_range
+	selected_fire_rate_label.text = "%.2f/s" % defense.fire_rate
+	upgrade_cost_label.text = str(defense.get_upgrade_cost())
 	sell_refund_label.text = str(refund_amount)
+	upgrade_button.disabled = _is_wave_running or not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
 
 func _on_defense_sold(defense_id: String, refund_amount: int) -> void:
 	selected_defense_label.text = "None"
+	selected_level_label.text = "-"
+	selected_damage_label.text = "0"
+	selected_range_label.text = "0"
+	selected_fire_rate_label.text = "0"
+	upgrade_cost_label.text = "0"
 	sell_refund_label.text = "0"
+	upgrade_button.disabled = true
 	sell_button.disabled = true
 	build_hint_label.text = "Sold %s for %d gold" % [defense_id, refund_amount]
 	_update_status_labels()
+
+func _on_defense_upgraded(defense_id: String, level: int, cost: int) -> void:
+	build_hint_label.text = "Upgraded %s to Lv%d (-%d gold)" % [defense_id, level, cost]
+	_update_status_labels()
+
+func _on_upgrade_failed(reason: String) -> void:
+	match reason:
+		"not_enough_gold":
+			build_hint_label.text = "Not enough gold for upgrade"
+		"wave_running":
+			build_hint_label.text = "Upgrades disabled during wave"
+		"max_level":
+			build_hint_label.text = "Defense already at max level"
+		"no_selection":
+			build_hint_label.text = "No defense selected"
+		_:
+			build_hint_label.text = "Upgrade unavailable"
 
 func _connect_build_pads() -> void:
 	if _map_instance == null:
@@ -304,16 +348,21 @@ func _update_status_labels() -> void:
 	active_enemies_label.text = str(wave_controller.get_active_enemy_count())
 	spawned_enemies_label.text = str(_spawned_count)
 	leaked_enemies_label.text = str(_leaked_count)
-	var viewport_size: Vector2i = get_viewport().get_visible_rect().size
-	viewport_label.text = "%dx%d" % [viewport_size.x, viewport_size.y]
-	var camera: Camera2D = get_node_or_null("MainCamera")
-	camera_zoom_label.text = "x%.2f y%.2f" % [camera.zoom.x, camera.zoom.y] if camera != null else "N/A"
-	var window_size: Vector2i = DisplayServer.window_get_size()
-	window_size_label.text = "%dx%d" % [window_size.x, window_size.y]
 	if selected_defense_label.text == "":
 		selected_defense_label.text = "None"
+	if selected_level_label.text == "":
+		selected_level_label.text = "-"
+	if selected_damage_label.text == "":
+		selected_damage_label.text = "0"
+	if selected_range_label.text == "":
+		selected_range_label.text = "0"
+	if selected_fire_rate_label.text == "":
+		selected_fire_rate_label.text = "0"
+	if upgrade_cost_label.text == "":
+		upgrade_cost_label.text = "0"
 	if sell_refund_label.text == "":
 		sell_refund_label.text = "0"
+	upgrade_button.disabled = _is_wave_running or not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
 
 func _clear_enemy_layer() -> void:
@@ -343,17 +392,6 @@ func _set_build_pads_enabled(enabled: bool) -> void:
 func get_phase_name() -> String:
 	return _phase_name
 
-func _set_compact_debug_layout() -> void:
-	if viewport_header_label != null:
-		viewport_header_label.visible = false
-	viewport_label.visible = false
-	if camera_zoom_header_label != null:
-		camera_zoom_header_label.visible = false
-	camera_zoom_label.visible = false
-	if window_size_header_label != null:
-		window_size_header_label.visible = false
-	window_size_label.visible = false
-
 func request_sell_selected_defense() -> void:
 	if _is_wave_running:
 		build_hint_label.text = "Selling disabled during wave"
@@ -361,6 +399,14 @@ func request_sell_selected_defense() -> void:
 	var refund: int = defense_controller.sell_selected_defense()
 	if refund <= 0:
 		build_hint_label.text = "No sellable defense selected"
+		return
+	_update_status_labels()
+
+func request_upgrade_selected_defense() -> void:
+	if _is_wave_running:
+		build_hint_label.text = "Upgrades disabled during wave"
+		return
+	if not defense_controller.upgrade_selected_defense():
 		return
 	_update_status_labels()
 
@@ -372,6 +418,24 @@ func get_selected_defense_id() -> String:
 
 func get_selected_refund_amount() -> int:
 	return defense_controller.get_selected_refund_amount()
+
+func get_selected_level() -> int:
+	var defense: DefenseActor = defense_controller.get_selected_defense()
+	if defense == null:
+		return 0
+	return defense.level
+
+func get_selected_upgrade_cost() -> int:
+	return defense_controller.get_selected_upgrade_cost()
+
+func get_selected_damage() -> float:
+	var defense: DefenseActor = defense_controller.get_selected_defense()
+	if defense == null:
+		return 0.0
+	return defense.damage
+
+func upgrade_selected_for_debug() -> bool:
+	return defense_controller.upgrade_selected_defense()
 
 func sell_selected_for_debug() -> int:
 	return defense_controller.sell_selected_defense()
