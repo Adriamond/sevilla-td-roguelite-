@@ -17,6 +17,28 @@ func _init() -> void:
 	print("Running project validation...")
 	if not _validate_global_controller_scripts():
 		return
+	var content_db_script: Script = load("res://autoload/content_db.gd")
+	if content_db_script == null:
+		print("Project validation failed: could not load ContentDB script.")
+		quit(1)
+		return
+	var content_db: Node = content_db_script.new()
+	if content_db == null:
+		print("Project validation failed: could not instantiate ContentDB.")
+		quit(1)
+		return
+	get_root().add_child(content_db)
+	content_db.call("load_all")
+	var map_validation: Dictionary = _validate_map_runtime_contracts(content_db)
+	if not bool(map_validation.get("ok", false)):
+		quit(1)
+		return
+	var validated_map_scene: PackedScene = map_validation.get("map_scene")
+	var validated_map_id: String = String(map_validation.get("map_id", ""))
+	if validated_map_scene == null:
+		print("Project validation failed: no validated map scene available for runtime checks.")
+		quit(1)
+		return
 
 	for scene_spec: Dictionary in SCENE_SPECS:
 		var scene_path: String = scene_spec.get("scene", "")
@@ -48,7 +70,7 @@ func _init() -> void:
 
 		instance.queue_free()
 
-	var map_scene: PackedScene = load("res://scenes/maps/pino_montano/pino_montano_map.tscn")
+	var map_scene: PackedScene = validated_map_scene
 	var enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
 	var defense_scene: PackedScene = load("res://scenes/defenses/defense_base.tscn")
 	if map_scene == null or enemy_scene == null or defense_scene == null:
@@ -71,11 +93,11 @@ func _init() -> void:
 
 	var main_path: Path2D = map_instance.get_node_or_null("MainPath")
 	if main_path == null or main_path.curve == null:
-		print("Project validation failed: MainPath or MainPath.curve is missing.")
+		print("Project validation failed: validated map ", validated_map_id, " is missing MainPath/curve at runtime check.")
 		quit(1)
 		return
 	if main_path.curve.get_baked_length() <= 0.0 and main_path.curve.get_point_count() < 2:
-		print("Project validation failed: MainPath has insufficient points/length.")
+		print("Project validation failed: validated map ", validated_map_id, " has invalid MainPath length.")
 		quit(1)
 		return
 
@@ -199,9 +221,182 @@ func _init() -> void:
 	defense_instance.queue_free()
 	cable_instance.queue_free()
 	wave_controller.queue_free()
+	content_db.queue_free()
 
 	print("Project validation OK.")
 	quit(0)
+
+func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
+	if content_db == null:
+		print("Project validation failed: ContentDB missing for map contract validation.")
+		return {"ok": false}
+	var maps: Dictionary = content_db.get("maps")
+	if maps.is_empty():
+		print("Project validation failed: no maps loaded in ContentDB.")
+		return {"ok": false}
+
+	var sorted_map_ids: Array[String] = []
+	for key: Variant in maps.keys():
+		sorted_map_ids.append(String(key))
+	sorted_map_ids.sort()
+
+	var first_valid_map_scene: PackedScene = null
+	var first_valid_map_id: String = ""
+
+	for map_id: String in sorted_map_ids:
+		var map_def: Resource = maps[map_id]
+		if map_def == null:
+			print("Map ", map_id, ": map resource is null.")
+			return {"ok": false}
+		var scene_path: String = String(map_def.get("scene_path")).strip_edges()
+		if scene_path.is_empty():
+			print("Map ", map_id, ": scene_path is empty.")
+			return {"ok": false}
+		if not ResourceLoader.exists(scene_path, "PackedScene"):
+			print("Map ", map_id, ": scene_path does not exist: ", scene_path)
+			return {"ok": false}
+		var map_scene: PackedScene = load(scene_path)
+		if map_scene == null:
+			print("Map ", map_id, ": could not load scene ", scene_path)
+			return {"ok": false}
+		var map_instance: Node = map_scene.instantiate()
+		if map_instance == null:
+			print("Map ", map_id, ": could not instantiate scene ", scene_path)
+			return {"ok": false}
+		var map_root: Node2D = map_instance as Node2D
+		if map_root == null:
+			print("Map ", map_id, ": root is not Node2D-compatible.")
+			map_instance.queue_free()
+			return {"ok": false}
+		get_root().add_child(map_root)
+		map_root.call("_ready")
+
+		var main_path: Path2D = map_root.get_node_or_null("MainPath")
+		if main_path == null:
+			print("Map ", map_id, ": missing MainPath.")
+			map_root.queue_free()
+			return {"ok": false}
+		if main_path.curve == null:
+			print("Map ", map_id, ": MainPath curve is null.")
+			map_root.queue_free()
+			return {"ok": false}
+		if _curve_length(main_path.curve) <= 0.0:
+			print("Map ", map_id, ": MainPath curve has zero baked/control length.")
+			map_root.queue_free()
+			return {"ok": false}
+
+		var ground_path_ids: PackedStringArray = map_def.get("ground_path_ids")
+		if not ground_path_ids.has("main"):
+			print("Map ", map_id, ": ground_path_ids must include 'main' for current MVP runtime.")
+			map_root.queue_free()
+			return {"ok": false}
+		var path_controller: PathController = PathController.new()
+		path_controller.register_path("main", main_path)
+		if path_controller.get_path_node("main") == null:
+			print("Map ", map_id, ": failed to register/retrieve main path id.")
+			map_root.queue_free()
+			return {"ok": false}
+
+		var start_marker: Node = map_root.get_node_or_null("StartMarker")
+		if start_marker == null:
+			print("Map ", map_id, ": missing StartMarker.")
+			map_root.queue_free()
+			return {"ok": false}
+		var end_marker: Node = map_root.get_node_or_null("EndMarker")
+		if end_marker == null:
+			print("Map ", map_id, ": missing EndMarker.")
+			map_root.queue_free()
+			return {"ok": false}
+
+		var pads_root: Node = map_root.get_node_or_null("BuildPads")
+		if pads_root == null:
+			print("Map ", map_id, ": missing BuildPads container.")
+			map_root.queue_free()
+			return {"ok": false}
+
+		var pad_nodes: Array[Node] = []
+		for child: Node in pads_root.get_children():
+			var pad: Area2D = child as Area2D
+			if pad == null:
+				continue
+			pad_nodes.append(pad)
+		if pad_nodes.is_empty():
+			print("Map ", map_id, ": no build pads found in BuildPads container.")
+			map_root.queue_free()
+			return {"ok": false}
+
+		var used_pad_ids: Dictionary = {}
+		for pad_node: Node in pad_nodes:
+			var pad: Area2D = pad_node as Area2D
+			if pad == null:
+				print("Map ", map_id, ": null build pad node found.")
+				map_root.queue_free()
+				return {"ok": false}
+			if not pad.has_signal("pad_clicked"):
+				print("Map ", map_id, ": build pad ", pad.name, " missing pad_clicked signal.")
+				map_root.queue_free()
+				return {"ok": false}
+			if pad.get_script() == null:
+				print("Map ", map_id, ": build pad ", pad.name, " missing script.")
+				map_root.queue_free()
+				return {"ok": false}
+			var pad_identifier: String = String(pad.get("pad_id")).strip_edges()
+			if pad_identifier.is_empty():
+				pad_identifier = String(pad.name)
+			if pad_identifier.is_empty():
+				print("Map ", map_id, ": build pad has no stable id or name.")
+				map_root.queue_free()
+				return {"ok": false}
+			if used_pad_ids.has(pad_identifier):
+				print("Map ", map_id, ": duplicate build pad id/name ", pad_identifier)
+				map_root.queue_free()
+				return {"ok": false}
+			used_pad_ids[pad_identifier] = true
+
+			var pad_category: String = String(pad.get("pad_category")).strip_edges()
+			if pad_category.is_empty():
+				print("Map ", map_id, ": build pad ", pad_identifier, " missing pad_category.")
+				map_root.queue_free()
+				return {"ok": false}
+
+		var path_visual: Line2D = map_root.get_node_or_null("PathVisual")
+		if path_visual != null and path_visual.points.size() >= 2:
+			if _polyline_length(path_visual.points) <= 0.0:
+				print("Map ", map_id, ": PathVisual exists but has zero length.")
+				map_root.queue_free()
+				return {"ok": false}
+
+		if first_valid_map_scene == null:
+			first_valid_map_scene = map_scene
+			first_valid_map_id = map_id
+		map_root.queue_free()
+
+	return {"ok": true, "map_scene": first_valid_map_scene, "map_id": first_valid_map_id}
+
+func _curve_length(curve: Curve2D) -> float:
+	if curve == null:
+		return 0.0
+	var baked_length: float = curve.get_baked_length()
+	if baked_length > 0.0:
+		return baked_length
+	var points: PackedVector2Array = curve.get_baked_points()
+	if points.size() >= 2:
+		return _polyline_length(points)
+	var point_count: int = curve.get_point_count()
+	if point_count < 2:
+		return 0.0
+	var control_points: PackedVector2Array = PackedVector2Array()
+	for i: int in range(point_count):
+		control_points.append(curve.get_point_position(i))
+	return _polyline_length(control_points)
+
+func _polyline_length(points: PackedVector2Array) -> float:
+	if points.size() < 2:
+		return 0.0
+	var total: float = 0.0
+	for i: int in range(points.size() - 1):
+		total += points[i].distance_to(points[i + 1])
+	return total
 
 func _validate_global_controller_scripts() -> bool:
 	var required_scripts: Array[String] = [

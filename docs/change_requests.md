@@ -1703,3 +1703,111 @@ Acceptance criteria:
 - Leaks do not grant kill gold.
 - Gold and kill feedback are visible during combat.
 - Existing wave/reward lifecycle remains stable.
+
+## CR-016 - Improve reward selection UI cards/readability
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Make reward selection understandable at a glance by replacing plain technical buttons with readable reward cards.
+
+Affected areas:
+
+- Design: reward presentation/readability
+- Code: reward screen card text composition from item data
+- Data: wording pass for existing reward item texts
+- UI: card-style reward layout at 1280x720
+- Balance: no reward mechanics changes
+- Docs: CR tracking update
+
+Decision:
+
+Keep the same reward mechanics and selection flow, but upgrade the reward screen to three readable cards showing name, effect, flavor, and a small debug id.
+
+Implementation notes:
+
+- Reworked `reward_screen.tscn` into a full-screen card row (3 large buttons/cards).
+- Updated `RewardScreenController` to render card text from `ContentDB` item data.
+- Added explicit effect text rendering for current MVP rewards:
+  - Litrito: +10% range, +10% crit chance
+  - Media Bellota: +30 gold
+  - Rasta: +10 Core HP
+- Kept reward pick behavior unchanged (`reward_chosen(item_id)` path).
+- Refined text fields in item data for clearer card copy.
+
+Files likely affected:
+
+- `scenes/ui/reward_screen.tscn`
+- `scripts/ui/reward_screen_controller.gd`
+- `data/items/litrito.tres`
+- `data/items/media_bellota.tres`
+- `data/items/rasta.tres`
+- `docs/change_requests.md`
+
+Risks:
+
+- Placeholder visual style remains intentionally simple until final art/UI pass.
+
+Acceptance criteria:
+
+- Reward screen shows three readable cards.
+- Cards clearly explain Litrito / Media Bellota / Rasta effects.
+- Existing reward mechanics and flow remain unchanged.
+- Validation suite remains passing.
+
+## CR-A1 - Add map runtime contract validation
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Add deterministic headless validation for map runtime contracts before scaling from one MVP map to many maps.
+
+Affected areas:
+
+- Design: explicit runtime contract for map scenes
+- Code: project validation contract checks for all `MapDef` scenes
+- Data: no schema changes
+- UI: none
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Extend `validate_project.gd` with per-map runtime contract checks driven by `ContentDB.maps`, and keep the existing validation pipeline unchanged.
+
+Implementation notes:
+
+- `validate_project.gd` now loads `ContentDB` and validates every map resource scene contract:
+  - map resource exists
+  - `scene_path` exists and loads
+  - scene instantiates and root is `Node2D`
+  - `MainPath` exists with valid non-zero curve length
+  - `ground_path_ids` includes `main` for current MVP runtime
+  - path registration/retrieval for `main` succeeds
+  - `StartMarker` and `EndMarker` exist
+  - `BuildPads` exists with at least one pad
+  - each pad exposes `pad_clicked` signal, script, stable id/name, non-empty `pad_category`
+  - duplicate pad ids/names are rejected
+  - `PathVisual` (if present) must have non-zero length
+- Validation failures print explicit map-specific errors (e.g. `Map <id>: missing MainPath`).
+- Existing enemy/defense/boss runtime checks now reuse one validated map scene from map contract pass.
+
+Files likely affected:
+
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Current contract intentionally reflects MVP conventions (`MainPath`, markers, pad container) and should evolve in step with future multi-path map support.
+
+Acceptance criteria:
+
+- Validation runner includes map contract validation through `validate_project.gd`.
+- Current Pino Montano map passes contract checks.
+- Contract failures are explicit and map-specific.
+- Existing gameplay behavior is unchanged.

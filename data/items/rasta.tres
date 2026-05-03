@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "rasta"
-display_name = "rasta"
-description = "Immediate core heal."
-display_name_es = "rasta"
-description_es = "Te mete aguante extra al nucleo en el momento."
-flavor_text_es = "Respira hondo, que queda barrio por defender."
+display_name = "Rasta"
+description = "Instant +10 Core HP."
+display_name_es = "Rasta"
+description_es = "+10 Core HP."
+flavor_text_es = "Te da aire pa aguantar otra olea."
 flavor_text = "Instant core HP gain."
 rarity = 0
 tags = PackedStringArray("mvp", "reward", "survival")

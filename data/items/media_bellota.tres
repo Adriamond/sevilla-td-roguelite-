@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "media_bellota"
-display_name = "media bellota"
-description = "Instant economy spike."
-display_name_es = "media bellota"
-description_es = "Te cae pasta al momento pa seguir montando defensa."
-flavor_text_es = "Caja rapida pa salir del apuro."
+display_name = "Media Bellota"
+description = "Instant +30 gold."
+display_name_es = "Media Bellota"
+description_es = "+30 oro."
+flavor_text_es = "Te cae pasta fresca y sigues montando."
 flavor_text = "Instant gold reward."
 rarity = 0
 tags = PackedStringArray("mvp", "reward", "economy")

@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "litrito"
-display_name = "litrito"
-description = "Global range and crit chance boost for all defenses."
-display_name_es = "litrito"
-description_es = "Sube el alcance global y la probabilidad de critico de toas tus defensas."
-flavor_text_es = "Un traguito y empiezan a afinar la punteria, picha."
+display_name = "Litrito"
+description = "+10% defense range and +10% critical hit chance."
+display_name_es = "Litrito"
+description_es = "+10% rango de torretas. +10% probabilidad critica."
+flavor_text_es = "Un trago corto y tiran con mas mala leche."
 flavor_text = "A tiny boost with big run-long impact."
 rarity = 1
 tags = PackedStringArray("mvp", "reward", "offense")
