@@ -28,6 +28,7 @@ const ROUND_SEQUENCE: Array[String] = [
 
 func start_run(seed: int, character_id: String, map_id: String) -> void:
 	_run_state().call("reset_run", seed, character_id, map_id)
+	_run_state().set("total_rounds", ROUND_SEQUENCE.size())
 	_run_finished = false
 	current_state = RunStateType.ROOM
 	run_started.emit()
@@ -70,6 +71,7 @@ func accept_reward(item_id: String) -> void:
 	var picked_item_ids: Array[String] = run_state.get("picked_item_ids")
 	picked_item_ids.append(item_id)
 	run_state.set("picked_item_ids", picked_item_ids)
+	_apply_reward_effect(item_id, run_state)
 
 	if is_final_round():
 		end_run(true)
@@ -79,6 +81,18 @@ func accept_reward(item_id: String) -> void:
 	run_state.set("current_round", next_round)
 	run_state.get("round_changed").emit(next_round)
 	transition_to(RunStateType.ROOM)
+
+func _apply_reward_effect(item_id: String, run_state: Node) -> void:
+	match item_id:
+		"litrito":
+			var current_range_multiplier: float = float(run_state.get("defense_range_multiplier"))
+			var current_crit_chance: float = float(run_state.get("global_crit_chance"))
+			run_state.set("defense_range_multiplier", current_range_multiplier + 0.10)
+			run_state.set("global_crit_chance", min(0.5, current_crit_chance + 0.10))
+		"media_bellota":
+			run_state.call("add_gold", 30)
+		"rasta":
+			run_state.call("heal_core", 10)
 
 func get_current_round_id() -> String:
 	var round_index: int = int(_run_state().get("current_round")) - 1
@@ -98,6 +112,9 @@ func get_round_reward_gold() -> int:
 
 func is_final_round() -> bool:
 	return int(_run_state().get("current_round")) >= ROUND_SEQUENCE.size()
+
+func get_total_rounds() -> int:
+	return ROUND_SEQUENCE.size()
 
 func transition_to(new_state: RunStateType) -> void:
 	if _run_finished and new_state != RunStateType.VICTORY and new_state != RunStateType.DEFEAT:

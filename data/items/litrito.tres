@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/item_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "litrito"
+display_name = "litrito"
+description = "Global range and crit chance boost for all defenses."
+display_name_es = "litrito"
+description_es = "Sube el alcance global y la probabilidad de critico de toas tus defensas."
+flavor_text_es = "Un traguito y empiezan a afinar la punteria, picha."
+flavor_text = "A tiny boost with big run-long impact."
+rarity = 1
+tags = PackedStringArray("mvp", "reward", "offense")
+effect_hooks = PackedStringArray("on_reward_pick")
+effect_values = {
+"crit_chance_bonus": 0.1,
+"range_multiplier_bonus": 0.1
+}
+drawback_description = ""
+balance_risk = "medium"

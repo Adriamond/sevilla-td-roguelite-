@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/item_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rasta"
+display_name = "rasta"
+description = "Immediate core heal."
+display_name_es = "rasta"
+description_es = "Te mete aguante extra al nucleo en el momento."
+flavor_text_es = "Respira hondo, que queda barrio por defender."
+flavor_text = "Instant core HP gain."
+rarity = 0
+tags = PackedStringArray("mvp", "reward", "survival")
+effect_hooks = PackedStringArray("on_reward_pick")
+effect_values = {
+"core_hp_instant": 10
+}
+drawback_description = ""
+balance_risk = "low"

@@ -113,6 +113,9 @@ func _init() -> void:
 		print("Project validation failed: defense actor did not initialize with manguerazo.")
 		quit(1)
 		return
+	var manguerazo_base_damage: float = float(defense_instance.get("damage"))
+	var manguerazo_base_range: float = float(defense_instance.get("attack_range"))
+	var manguerazo_base_fire_rate: float = float(defense_instance.get("fire_rate"))
 	if int(defense_instance.get("level")) != 1:
 		print("Project validation failed: defense actor initial level should be 1.")
 		quit(1)
@@ -155,18 +158,41 @@ func _init() -> void:
 		print("Project validation failed: defense actor did not initialize with cable_pelao.")
 		quit(1)
 		return
-	if float(cable_instance.get("damage")) >= float(defense_instance.get("damage")):
+	if float(cable_instance.get("damage")) >= manguerazo_base_damage:
 		print("Project validation failed: cable_pelao damage should be lower than manguerazo baseline.")
 		quit(1)
 		return
-	if float(cable_instance.get("attack_range")) >= float(defense_instance.get("attack_range")):
+	if float(cable_instance.get("attack_range")) >= manguerazo_base_range:
 		print("Project validation failed: cable_pelao range should be shorter than manguerazo baseline.")
 		quit(1)
 		return
-	if float(cable_instance.get("fire_rate")) <= float(defense_instance.get("fire_rate")):
+	if float(cable_instance.get("fire_rate")) <= manguerazo_base_fire_rate:
 		print("Project validation failed: cable_pelao fire_rate should be faster than manguerazo baseline.")
 		quit(1)
 		return
+	var boss_def: Resource = load("res://data/enemies/killo_bulevar_boss.tres")
+	if boss_def == null:
+		print("Project validation failed: killo_bulevar_boss.tres could not be loaded.")
+		quit(1)
+		return
+	var boss_scene: PackedScene = load(String(boss_def.get("scene_path")))
+	if boss_scene == null:
+		print("Project validation failed: boss enemy scene could not be loaded.")
+		quit(1)
+		return
+	var boss_instance: Node2D = boss_scene.instantiate() as Node2D
+	if boss_instance == null:
+		print("Project validation failed: boss enemy scene could not instantiate.")
+		quit(1)
+		return
+	get_root().add_child(boss_instance)
+	if boss_instance.has_method("setup_from_def"):
+		boss_instance.call("setup_from_def", boss_def, main_path, false)
+	if not bool(boss_instance.call("is_alive")):
+		print("Project validation failed: boss enemy did not initialize as alive actor.")
+		quit(1)
+		return
+	boss_instance.queue_free()
 
 	enemy_instance.queue_free()
 	map_instance.queue_free()

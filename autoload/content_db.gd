@@ -56,6 +56,7 @@ func validate_all() -> Array[String]:
         var enemy: Resource = enemies[enemy_id]
         _validate_positive_number(errors, enemy, "enemies", enemy_id, "base_hp", false)
         _validate_positive_number(errors, enemy, "enemies", enemy_id, "base_speed", false)
+        _validate_positive_number(errors, enemy, "enemies", enemy_id, "gold_reward", true)
 
     for defense_id: String in defenses.keys():
         var defense: Resource = defenses[defense_id]

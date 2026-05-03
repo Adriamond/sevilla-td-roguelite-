@@ -11,8 +11,11 @@ var current_round: int = 0
 var gold: int = 0
 var core_hp: int = 0
 var room_charges: int = 0
+var total_rounds: int = 0
 var picked_item_ids: Array[String] = []
 var built_defense_ids: Array[String] = []
+var defense_range_multiplier: float = 1.0
+var global_crit_chance: float = 0.0
 
 func reset_run(new_seed: int, new_character_id: String, new_map_id: String) -> void:
 	run_seed = new_seed
@@ -22,6 +25,9 @@ func reset_run(new_seed: int, new_character_id: String, new_map_id: String) -> v
 	gold = 140
 	core_hp = 20
 	room_charges = 2
+	total_rounds = 0
+	defense_range_multiplier = 1.0
+	global_crit_chance = 0.0
 	picked_item_ids.clear()
 	built_defense_ids.clear()
 	gold_changed.emit(gold)
@@ -41,6 +47,12 @@ func spend_gold(amount: int) -> bool:
 
 func damage_core(amount: int) -> void:
 	core_hp = max(0, core_hp - amount)
+	core_hp_changed.emit(core_hp)
+
+func heal_core(amount: int) -> void:
+	if amount <= 0:
+		return
+	core_hp += amount
 	core_hp_changed.emit(core_hp)
 
 func is_defeated() -> bool:

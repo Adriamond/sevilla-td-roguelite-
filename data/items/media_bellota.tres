@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/defs/item_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "media_bellota"
+display_name = "media bellota"
+description = "Instant economy spike."
+display_name_es = "media bellota"
+description_es = "Te cae pasta al momento pa seguir montando defensa."
+flavor_text_es = "Caja rapida pa salir del apuro."
+flavor_text = "Instant gold reward."
+rarity = 0
+tags = PackedStringArray("mvp", "reward", "economy")
+effect_hooks = PackedStringArray("on_reward_pick")
+effect_values = {
+"gold_instant": 30
+}
+drawback_description = ""
+balance_risk = "low"

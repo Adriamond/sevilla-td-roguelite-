@@ -6,6 +6,7 @@ signal wave_started(round_index: int)
 signal wave_completed(round_index: int)
 signal enemy_leaked(enemy_id: String, leak_damage: int)
 signal enemy_spawned(enemy_id: String)
+signal enemy_killed(enemy_id: String, gold_awarded: int, world_position: Vector2)
 signal active_enemy_count_changed(value: int)
 
 var active_round_def: Resource
@@ -33,8 +34,9 @@ func start_round(round_def: Resource) -> bool:
 	_cancel_requested = false
 	_spawned_count = 0
 
-	var run_state: Node = get_node("/root/RunState")
-	wave_started.emit(int(run_state.get("current_round")))
+	var run_state: Node = _run_state()
+	var current_round: int = int(run_state.get("current_round")) if run_state != null else 0
+	wave_started.emit(current_round)
 	_spawn_round_steps()
 	return true
 
@@ -42,8 +44,9 @@ func complete_wave() -> void:
 	if not _running:
 		return
 	_running = false
-	var run_state: Node = get_node("/root/RunState")
-	wave_completed.emit(int(run_state.get("current_round")))
+	var run_state: Node = _run_state()
+	var current_round: int = int(run_state.get("current_round")) if run_state != null else 0
+	wave_completed.emit(current_round)
 
 func debug_force_complete() -> bool:
 	if not _running:
@@ -119,11 +122,22 @@ func _register_enemy(enemy: Node) -> void:
 
 	if enemy.has_signal("reached_end"):
 		enemy.reached_end.connect(_on_enemy_reached_end)
+	if enemy.has_signal("died"):
+		enemy.died.connect(_on_enemy_died.bind(id))
 	if enemy.has_signal("removed_from_wave"):
 		enemy.removed_from_wave.connect(_on_enemy_removed_from_wave.bind(id))
 
 func _on_enemy_reached_end(enemy_id: String, leak_damage: int) -> void:
 	enemy_leaked.emit(enemy_id, leak_damage)
+
+func _on_enemy_died(enemy_id: String, gold_reward: int, world_position: Vector2, instance_id: int) -> void:
+	if _active_enemies.has(instance_id):
+		var reward_to_apply: int = max(0, gold_reward)
+		if reward_to_apply > 0:
+			var run_state: Node = _run_state()
+			if run_state != null:
+				run_state.call("add_gold", reward_to_apply)
+		enemy_killed.emit(enemy_id, reward_to_apply, world_position)
 
 func _on_enemy_removed_from_wave(_enemy_id: String, instance_id: int) -> void:
 	if not _active_enemies.has(instance_id):
@@ -140,3 +154,8 @@ func _check_wave_completion() -> void:
 	if _active_enemies.size() > 0:
 		return
 	complete_wave()
+
+func _run_state() -> Node:
+	if not is_inside_tree():
+		return null
+	return get_node_or_null("/root/RunState")

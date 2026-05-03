@@ -1459,3 +1459,247 @@ Acceptance criteria:
 - Upgrading selected defense updates level/damage panel immediately.
 - Selling selected defense clears panel state.
 - Switching away/back preserves upgraded stats display.
+
+## CR-012 - First balance and readability pass for two-defense gameplay
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Tune early two-defense gameplay so rounds 1-3 are clearer and both `manguerazo` and `cable_pelao` feel useful without adding new systems.
+
+Affected areas:
+
+- Design: early readability and tactical identity clarity
+- Code: none (data-only tuning)
+- Data: defense/enemy/round numeric values for MVP early game
+- UI: no structural changes
+- Balance: first-pass tuning only
+- Docs: CR tracking update
+
+Decision:
+
+Apply a conservative data-only balance pass to improve role separation and reduce early overwhelm risk while preserving current mechanics and lifecycle.
+
+Implementation notes:
+
+- Tuned defense profiles:
+  - `manguerazo`: slightly higher cost/damage/range for steady medium-lane value.
+  - `cable_pelao`: lower cost, shorter range, lower hit damage, faster fire rate for close-curve/choke use.
+- Tuned early enemies for readability and pressure ramp:
+  - reduced `tactichandal_runner` hp/speed.
+  - slightly reduced `lagrima_negra` hp/speed.
+- Tuned `round_02` pacing:
+  - slower runner spawn interval.
+  - fewer/slower `lagrima_negra` spawns.
+- No new mechanics, defenses, enemies, schema changes, or map redesign.
+
+Files likely affected:
+
+- `data/defenses/manguerazo.tres`
+- `data/defenses/cable_pelao.tres`
+- `data/enemies/tactichandal_runner.tres`
+- `data/enemies/lagrima_negra.tres`
+- `data/rounds/round_02.tres`
+- `docs/change_requests.md`
+
+Risks:
+
+- This is still a first-pass heuristic tune and may need further iteration after manual play batches.
+
+Acceptance criteria:
+
+- Validation suite passes.
+- Early rounds feel more readable and less spikey.
+- Both defenses keep distinct tactical identity and practical usefulness.
+- Existing build/sell/upgrade/wave/reward flow remains intact.
+
+## CR-013 - Add first real reward effects: litrito, media_bellota, rasta
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Make reward picks materially affect gameplay with three concrete MVP effects while keeping architecture simple.
+
+Affected areas:
+
+- Design: first meaningful roguelite reward impact
+- Code: run-level reward resolution + defense stat usage
+- Data: three new item resources
+- UI: reward pool prioritization and effective range display
+- Balance: early run modifiers and immediate economy/survival effects
+- Docs: CR tracking update
+
+Decision:
+
+Implement a small ID-mapped reward resolution in gameplay layer (`RunController`) for `litrito`, `media_bellota`, and `rasta`, and apply resulting run modifiers to all defenses.
+
+Implementation notes:
+
+- Added item resources:
+  - `litrito`: +10% global defense range multiplier and +10% global crit chance (capped at 50%).
+  - `media_bellota`: immediate +30 gold.
+  - `rasta`: immediate +10 core HP.
+- Added run-level modifier state in `RunState`:
+  - `defense_range_multiplier` (starts at `1.0`)
+  - `global_crit_chance` (starts at `0.0`)
+- Reward effects now apply in `RunController.accept_reward`.
+- `DefenseActor` now uses run modifiers:
+  - effective range recalculates from base range * run multiplier
+  - attack rolls crit chance and applies `x2.0` damage on crit
+- `EnemyActor.apply_damage` now accepts optional crit flag and displays `CRIT` in hit feedback text.
+- Reward screen pool now prioritizes `litrito`, `media_bellota`, `rasta`.
+- Extended flow smoke validation with deterministic checks for all three effects, crit cap, and effective range propagation.
+
+Files likely affected:
+
+- `autoload/run_state.gd`
+- `scripts/gameplay/run_controller.gd`
+- `scripts/gameplay/defense_actor.gd`
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/ui/boot_controller.gd`
+- `data/items/litrito.tres`
+- `data/items/media_bellota.tres`
+- `data/items/rasta.tres`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Reward resolution is intentionally ID-mapped for MVP speed and should evolve into a richer effect system later.
+
+Acceptance criteria:
+
+- Reward picks now produce meaningful gameplay effects.
+- Effects apply through gameplay layer and persist for the run.
+- Existing build/sell/upgrade/wave/reward flow remains stable.
+- Validation suite remains passing.
+
+## CR-014 - Fix per-defense upgrade, show round total and enable boss round
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Fix upgrade behavior across multiple same-type defenses, show round progress as current/total, and ensure the MVP final boss round is wired and visible.
+
+Affected areas:
+
+- Design: round progress clarity and final-round visibility
+- Code: defense selection/upgrade UI state refresh, round-total propagation, boss spawn path robustness
+- Data: boss enemy scene wiring
+- UI: round label format and upgrade availability refresh on selection change
+- Balance: no new systems, no new upgrade tiers
+- Docs: CR tracking update
+
+Decision:
+
+Keep the existing MVP architecture and patch only the narrow failure points: per-selection upgrade button refresh, gameplay-layer total-round exposure, and boss round enemy actor wiring.
+
+Implementation notes:
+
+- Per-defense upgrade fix:
+  - `GameplayRootController` now refreshes full status/button state on defense selection changes.
+  - Added deterministic debug selection helper by id + match index for validation.
+- Round total in HUD:
+  - `RunState` now stores `total_rounds` for the active run.
+  - `RunController.start_run` sets `total_rounds` from round sequence size.
+  - HUD round value now renders as `current / total`.
+- Boss round enablement:
+  - `killo_bulevar_boss` now uses the active enemy actor scene so it actually spawns/moves/leaks/dies in wave flow.
+  - Boss visual readability improved in `EnemyActor` (larger scale, boss label prefix, distinct color).
+- Robustness hardening:
+  - Added safe `/root/RunState` lookups in gameplay controllers during teardown edge cases.
+- Validation updates:
+  - Smoke now checks per-defense upgrade independence with two `manguerazo` instances.
+  - Smoke verifies total rounds exposure and final round boss data resolution.
+  - Project validation now sanity-checks boss enemy scene instantiation/setup.
+
+Files likely affected:
+
+- `autoload/run_state.gd`
+- `scripts/gameplay/run_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/gameplay/defense_controller.gd`
+- `scripts/gameplay/wave_controller.gd`
+- `scripts/gameplay/enemy_actor.gd`
+- `data/enemies/killo_bulevar_boss.tres`
+- `tools/validate_flow_smoke.gd`
+- `tools/validate_project.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Boss currently uses the shared enemy actor (intentional MVP scope). Dedicated boss mechanics remain future work.
+
+Acceptance criteria:
+
+- Per-defense upgrade works independently for same-type defenses.
+- HUD shows round as `current / total`.
+- Final round resolves boss round data and boss enemy spawns through wave system.
+- Existing build/sell/upgrade/reward/defeat flow remains stable.
+
+## CR-015 - Fix per-defense upgrade consistency and add kill gold rewards
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Stabilize per-selected-defense upgrade behavior and add basic kill-economy feedback so combat outcomes are readable and rewarding.
+
+Affected areas:
+
+- Design: clearer combat reward feedback and reliable build-phase upgrade interactions
+- Code: enemy death payout path, controller/UI refresh reliability, validation coverage
+- Data: no schema expansion required beyond existing `gold_reward` usage
+- UI: immediate gold refresh + simple kill-gold feedback
+- Balance: kill-gold now active from existing enemy data values
+- Docs: CR tracking update
+
+Decision:
+
+Keep existing architecture and implement kill-gold in gameplay layer (`WaveController` on enemy death), while tightening selection-driven upgrade state updates and deterministic smoke checks.
+
+Implementation notes:
+
+- Per-defense upgrade consistency:
+  - Upgrade enablement remains selection-driven via `DefenseController.can_upgrade_selected_defense()`.
+  - Gameplay UI now refreshes status from selection changes and run-state gold changes to avoid stale button states.
+- Kill gold rewards:
+  - `EnemyActor` now carries `gold_reward` from `EnemyDef`.
+  - `WaveController` listens for enemy `died` and awards gold through `RunState.add_gold()` exactly once.
+  - Leaks continue through `reached_end` and do not grant kill gold.
+- Visible feedback:
+  - Final-hit feedback now shows `KO +<gold>g` on enemy hit label before removal.
+  - HUD gold updates immediately via run-state signal refresh in gameplay UI.
+- Validation:
+  - Smoke now asserts two same-type defenses can both upgrade independently.
+  - Smoke asserts kill-gold applies once per death and leak signals do not increase gold.
+  - Content validation now enforces enemy `gold_reward >= 0`.
+
+Files likely affected:
+
+- `scripts/gameplay/enemy_actor.gd`
+- `scripts/gameplay/wave_controller.gd`
+- `scripts/ui/gameplay_root_controller.gd`
+- `autoload/content_db.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Kill feedback remains placeholder/debug style and may later move to a dedicated feedback layer.
+
+Acceptance criteria:
+
+- Upgrade availability remains correct per selected defense.
+- Enemy kills grant gold exactly once per death.
+- Leaks do not grant kill gold.
+- Gold and kill feedback are visible during combat.
+- Existing wave/reward lifecycle remains stable.

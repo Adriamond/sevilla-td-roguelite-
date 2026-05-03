@@ -193,9 +193,9 @@ func _clear_primary_screen() -> void:
 
 func _get_placeholder_reward_ids() -> Array[String]:
 	var preferred_ids: Array[String] = [
-		"botellin_congelado",
-		"abanico_prestado",
-        "ticket_bus_urbano"
+		"litrito",
+		"media_bellota",
+		"rasta"
 	]
 	var result: Array[String] = []
 

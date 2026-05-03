@@ -10,6 +10,7 @@ const UPGRADE_COST: int = 45
 var defense_id: String = ""
 var damage: float = 1.0
 var attack_range: float = 64.0
+var _base_attack_range: float = 64.0
 var fire_rate: float = 1.0
 var targeting_mode: String = "first"
 var base_cost: int = 0
@@ -19,6 +20,7 @@ var has_participated_in_wave: bool = false
 
 var _cooldown: float = 0.0
 var _wave_controller: WaveController = null
+var _last_range_multiplier: float = -1.0
 
 @onready var label: Label = get_node_or_null("%DefenseLabel")
 @onready var range_circle: Line2D = get_node_or_null("%RangeCircle")
@@ -34,7 +36,8 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 	level = 1
 	total_invested_cost = base_cost
 	damage = float(defense_def.get("base_damage"))
-	attack_range = float(defense_def.get("base_range"))
+	_base_attack_range = float(defense_def.get("base_range"))
+	attack_range = _get_effective_range()
 	fire_rate = max(float(defense_def.get("base_fire_rate")), 0.1)
 	targeting_mode = String(defense_def.get("targeting_mode"))
 	has_participated_in_wave = false
@@ -43,6 +46,7 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 	if label != null:
 		label.text = defense_id
 	_apply_visual_profile()
+	_refresh_effective_range()
 	_draw_range_circle()
 	if click_area != null and not click_area.is_connected("input_event", _on_click_area_input_event):
 		click_area.connect("input_event", _on_click_area_input_event)
@@ -50,6 +54,7 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 func _process(delta: float) -> void:
 	if _wave_controller == null:
 		return
+	_refresh_effective_range()
 	if _beam_timer > 0.0:
 		_beam_timer = max(0.0, _beam_timer - delta)
 		if _beam_timer <= 0.0 and attack_beam != null:
@@ -64,7 +69,11 @@ func _process(delta: float) -> void:
 		return
 
 	if target.has_method("apply_damage"):
-		target.call("apply_damage", damage)
+		var total_damage: float = damage
+		var is_crit: bool = _roll_is_crit()
+		if is_crit:
+			total_damage *= 2.0
+		target.call("apply_damage", total_damage, is_crit)
 	_show_attack_beam_to(target.global_position)
 	_cooldown = 1.0 / fire_rate
 
@@ -74,7 +83,7 @@ func _pick_target_in_range() -> Node2D:
 		var enemy_node: Node2D = enemy as Node2D
 		if enemy_node == null:
 			continue
-		if global_position.distance_to(enemy_node.global_position) > attack_range:
+		if global_position.distance_to(enemy_node.global_position) > _get_effective_range():
 			continue
 		if enemy.has_method("is_alive") and not bool(enemy.call("is_alive")):
 			continue
@@ -127,6 +136,46 @@ func apply_upgrade() -> bool:
 	damage *= 1.5
 	total_invested_cost += UPGRADE_COST
 	return true
+
+func get_effective_range() -> float:
+	return _get_effective_range()
+
+func get_crit_chance() -> float:
+	return _get_global_crit_chance()
+
+func _refresh_effective_range() -> void:
+	var current_multiplier: float = _get_range_multiplier()
+	if is_equal_approx(current_multiplier, _last_range_multiplier):
+		return
+	_last_range_multiplier = current_multiplier
+	attack_range = _base_attack_range * current_multiplier
+	_draw_range_circle()
+
+func _get_effective_range() -> float:
+	return _base_attack_range * _get_range_multiplier()
+
+func _roll_is_crit() -> bool:
+	var crit_chance: float = _get_global_crit_chance()
+	if crit_chance <= 0.0:
+		return false
+	return randf() < crit_chance
+
+func _get_global_crit_chance() -> float:
+	var run_state: Node = _run_state()
+	if run_state == null:
+		return 0.0
+	return float(run_state.get("global_crit_chance"))
+
+func _run_state() -> Node:
+	if not is_inside_tree():
+		return null
+	return get_node_or_null("/root/RunState")
+
+func _get_range_multiplier() -> float:
+	var run_state: Node = _run_state()
+	if run_state == null:
+		return 1.0
+	return max(0.1, float(run_state.get("defense_range_multiplier")))
 
 func _apply_visual_profile() -> void:
 	if defense_id == "cable_pelao":

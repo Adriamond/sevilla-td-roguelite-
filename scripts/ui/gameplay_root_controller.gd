@@ -183,6 +183,7 @@ func _ready() -> void:
 	defense_controller.configure(defense_layer, wave_controller)
 	wave_controller.wave_completed.connect(_on_wave_completed)
 	wave_controller.enemy_leaked.connect(_on_enemy_leaked)
+	wave_controller.enemy_killed.connect(_on_enemy_killed)
 	wave_controller.enemy_spawned.connect(_on_enemy_spawned)
 	wave_controller.active_enemy_count_changed.connect(_on_active_enemy_count_changed)
 	defense_controller.build_failed.connect(_on_build_failed)
@@ -190,6 +191,10 @@ func _ready() -> void:
 	defense_controller.defense_sold.connect(_on_defense_sold)
 	defense_controller.defense_upgraded.connect(_on_defense_upgraded)
 	defense_controller.upgrade_failed.connect(_on_upgrade_failed)
+	var run_state: Node = get_node("/root/RunState")
+	run_state.gold_changed.connect(_on_run_gold_changed)
+	run_state.core_hp_changed.connect(_on_run_core_hp_changed)
+	run_state.round_changed.connect(_on_run_round_changed)
 	_apply_board_layout()
 	_center_camera()
 	_update_status_labels()
@@ -249,7 +254,21 @@ func _on_enemy_spawned(_enemy_id: String) -> void:
 	_spawned_count += 1
 	_update_status_labels()
 
+func _on_enemy_killed(_enemy_id: String, gold_awarded: int, _world_position: Vector2) -> void:
+	if gold_awarded > 0:
+		build_hint_label.text = "+%dg por kill" % gold_awarded
+	_update_status_labels()
+
 func _on_active_enemy_count_changed(_value: int) -> void:
+	_update_status_labels()
+
+func _on_run_gold_changed(_value: int) -> void:
+	_update_status_labels()
+
+func _on_run_core_hp_changed(_value: int) -> void:
+	_update_status_labels()
+
+func _on_run_round_changed(_value: int) -> void:
 	_update_status_labels()
 
 func _on_pad_clicked(pad: Area2D) -> void:
@@ -279,7 +298,7 @@ func _on_build_failed(reason: String) -> void:
 			build_hint_label.text = "Build failed: %s" % reason
 
 func _on_defense_selected(_defense: DefenseActor, _refund_amount: int) -> void:
-	_refresh_selected_defense_panel()
+	_update_status_labels()
 
 func _on_defense_sold(defense_id: String, refund_amount: int) -> void:
 	build_hint_label.text = "Sold %s for %d gold" % [defense_id, refund_amount]
@@ -318,7 +337,11 @@ func _connect_build_pads() -> void:
 
 func _update_status_labels() -> void:
 	var run_state: Node = get_node("/root/RunState")
-	round_label.text = str(int(run_state.get("current_round")))
+	var current_round: int = int(run_state.get("current_round"))
+	var total_rounds: int = int(run_state.get("total_rounds"))
+	if total_rounds <= 0:
+		total_rounds = 6
+	round_label.text = "%d / %d" % [current_round, total_rounds]
 	core_hp_label.text = str(int(run_state.get("core_hp")))
 	gold_label.text = str(int(run_state.get("gold")))
 	active_enemies_label.text = str(wave_controller.get_active_enemy_count())
@@ -406,6 +429,12 @@ func get_selected_damage() -> float:
 		return 0.0
 	return defense.damage
 
+func get_selected_range() -> float:
+	var defense: DefenseActor = defense_controller.get_selected_defense()
+	if defense == null:
+		return 0.0
+	return defense.get_effective_range()
+
 func upgrade_selected_for_debug() -> bool:
 	return defense_controller.upgrade_selected_defense()
 
@@ -430,6 +459,21 @@ func select_defense_by_id_for_debug(defense_id: String) -> bool:
 		if defense.defense_id != defense_id:
 			continue
 		return defense_controller.select_defense(defense)
+	return false
+
+func select_defense_by_id_at_index_for_debug(defense_id: String, match_index: int) -> bool:
+	if defense_id.is_empty() or match_index < 0:
+		return false
+	var current_match: int = 0
+	for child: Node in defense_layer.get_children():
+		var defense: DefenseActor = child as DefenseActor
+		if defense == null:
+			continue
+		if defense.defense_id != defense_id:
+			continue
+		if current_match == match_index:
+			return defense_controller.select_defense(defense)
+		current_match += 1
 	return false
 
 func select_build_manguerazo() -> void:
@@ -464,7 +508,16 @@ func _refresh_selected_defense_panel() -> void:
 	selected_defense_label.text = defense.defense_id
 	selected_level_label.text = str(defense.level)
 	selected_damage_label.text = "%.1f" % defense.damage
-	selected_range_label.text = "%.1f" % defense.attack_range
+	selected_range_label.text = "%.1f" % defense.get_effective_range()
 	selected_fire_rate_label.text = "%.2f/s" % defense.fire_rate
 	upgrade_cost_label.text = str(defense.get_upgrade_cost())
 	sell_refund_label.text = str(defense_controller.get_selected_refund_amount())
+
+func get_run_range_multiplier() -> float:
+	return float(get_node("/root/RunState").get("defense_range_multiplier"))
+
+func get_run_crit_chance() -> float:
+	return float(get_node("/root/RunState").get("global_crit_chance"))
+
+func get_total_rounds() -> int:
+	return int(get_node("/root/RunState").get("total_rounds"))

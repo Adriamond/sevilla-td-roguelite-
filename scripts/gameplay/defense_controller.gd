@@ -37,6 +37,8 @@ func can_build(defense_id: String, pad: Node2D, pad_category: String) -> bool:
 		return false
 
 	var run_state: Node = _run_state()
+	if run_state == null:
+		return false
 	return int(run_state.get("gold")) >= int(defense_def.get("base_cost"))
 
 func build_defense(defense_id: String, pad: Node2D, pad_category: String) -> bool:
@@ -46,7 +48,11 @@ func build_defense(defense_id: String, pad: Node2D, pad_category: String) -> boo
 
 	var defense_def: Resource = _content_db().call("get_defense", defense_id)
 	var build_cost: int = int(defense_def.get("base_cost"))
-	if not _run_state().call("spend_gold", build_cost):
+	var run_state: Node = _run_state()
+	if run_state == null:
+		build_failed.emit("run_state_missing")
+		return false
+	if not run_state.call("spend_gold", build_cost):
 		build_failed.emit("not_enough_gold")
 		return false
 
@@ -116,7 +122,10 @@ func can_upgrade_selected_defense() -> bool:
 		return false
 	if not defense.can_upgrade():
 		return false
-	return int(_run_state().get("gold")) >= defense.get_upgrade_cost()
+	var run_state: Node = _run_state()
+	if run_state == null:
+		return false
+	return int(run_state.get("gold")) >= defense.get_upgrade_cost()
 
 func sell_selected_defense() -> int:
 	if not can_sell_selected_defense():
@@ -158,7 +167,11 @@ func upgrade_selected_defense() -> bool:
 	if upgrade_cost <= 0:
 		upgrade_failed.emit("cannot_upgrade")
 		return false
-	if not _run_state().call("spend_gold", upgrade_cost):
+	var run_state: Node = _run_state()
+	if run_state == null:
+		upgrade_failed.emit("cannot_upgrade")
+		return false
+	if not run_state.call("spend_gold", upgrade_cost):
 		upgrade_failed.emit("not_enough_gold")
 		return false
 	if not defense.apply_upgrade():
@@ -183,7 +196,9 @@ func _is_category_compatible(defense_def: Resource, pad_category: String) -> boo
 			return false
 
 func _run_state() -> Node:
-	return get_node("/root/RunState")
+	if not is_inside_tree():
+		return null
+	return get_node_or_null("/root/RunState")
 
 func _content_db() -> Node:
 	return get_node("/root/ContentDB")
@@ -208,7 +223,10 @@ func _calculate_refund_amount(defense: DefenseActor) -> int:
 		return 0
 	if not defense.has_participated_in_wave:
 		return total_invested_cost
-	var current_round: int = int(_run_state().get("current_round"))
+	var run_state: Node = _run_state()
+	if run_state == null:
+		return 0
+	var current_round: int = int(run_state.get("current_round"))
 	var ratio: float = 0.8 if current_round <= 2 else 0.7
 	return int(floor(float(total_invested_cost) * ratio))
 
