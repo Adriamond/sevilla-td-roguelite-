@@ -42,6 +42,8 @@ var _spawned_count: int = 0
 var _leaked_count: int = 0
 var _build_defense_id: String = "manguerazo"
 var _core_depleted_emitted: bool = false
+const BOARD_ORIGIN: Vector2 = Vector2(236.0, 78.0)
+const BOARD_SCALE: Vector2 = Vector2(0.88, 0.88)
 
 func show_build_phase() -> void:
 	_is_wave_running = false
@@ -188,6 +190,7 @@ func _ready() -> void:
 	defense_controller.defense_sold.connect(_on_defense_sold)
 	defense_controller.defense_upgraded.connect(_on_defense_upgraded)
 	defense_controller.upgrade_failed.connect(_on_upgrade_failed)
+	_apply_board_layout()
 	_center_camera()
 	_update_status_labels()
 
@@ -213,6 +216,7 @@ func _ensure_map_loaded() -> void:
 	if _map_instance == null:
 		return
 
+	_apply_board_layout()
 	map_container.add_child(_map_instance)
 	_connect_build_pads()
 	path_controller.clear_paths()
@@ -224,7 +228,7 @@ func _center_camera() -> void:
 	var camera: Camera2D = get_node_or_null("MainCamera")
 	if camera == null:
 		return
-	camera.position = Vector2(480, 270)
+	camera.position = Vector2(640, 360)
 
 func _on_wave_completed(_round_index: int) -> void:
 	_is_wave_running = false
@@ -391,6 +395,12 @@ func _set_build_pads_enabled(enabled: bool) -> void:
 
 func get_phase_name() -> String:
 	return _phase_name
+
+func _apply_board_layout() -> void:
+	if map_container == null:
+		return
+	map_container.position = BOARD_ORIGIN
+	map_container.scale = BOARD_SCALE
 
 func request_sell_selected_defense() -> void:
 	if _is_wave_running:

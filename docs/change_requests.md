@@ -1286,3 +1286,58 @@ Acceptance criteria:
 - Upgrade stat increase is visible in selected-defense UI and validated in automated checks.
 - Action controls remain visible and clickable in their own panel.
 - Existing build/sell/upgrade/wave/reward flow remains working.
+
+---
+
+## CR-010C - Gameplay screen layout pass
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Reserve clear visual space for gameplay board versus debug/UI controls so core interactions remain readable as MVP controls grow.
+
+Affected areas:
+
+- Design: screen composition and reserved board area clarity
+- Code: gameplay root board framing values only
+- Data: no schema/id changes
+- UI: runtime resolution and panel layout pass
+- Balance: no combat/system changes
+- Docs: CR tracking update
+
+Decision:
+
+Move to a 1280x720 debug runtime and split gameplay HUD into stable top/left/right regions, while reframing the map into a center board area.
+
+Implementation notes:
+
+- Updated runtime viewport to `1280x720`.
+- Reworked `gameplay_root.tscn` into three stable UI zones:
+  - top bar: phase, round, core HP, gold
+  - left panel: Start Wave / Force Complete + active/spawned/leaked counters
+  - right panel: selected defense stats/actions (level/damage/range/fire-rate/upgrade/sell)
+- Added board framing constants in `GameplayRootController`:
+  - map container offset into center play area
+  - map container scale for board fit
+  - camera centered for 1280x720 layout
+- No gameplay logic changes to build/sell/upgrade/combat/wave/reward/defeat flow.
+
+Files likely affected:
+
+- `project.godot`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Layout values are debug-MVP tuned and may need adjustment when final art HUD arrives.
+
+Acceptance criteria:
+
+- 1280x720 runtime readability.
+- Board center area stays clear of side panels.
+- Start Wave/Force Complete and selected-defense controls remain visible/reachable by phase.
+- Existing gameplay flow remains intact.
