@@ -1407,3 +1407,55 @@ Acceptance criteria:
 - Both can be selected and sold.
 - Wave/reward flow remains stable.
 - No status/elements/synergies/shop scope added.
+
+---
+
+## CR-011B - Fix selected defense stats UI refresh
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Ensure the selected-defense panel always reflects the true currently selected defense and current stats when switching, upgrading, and selling.
+
+Affected areas:
+
+- Design: panel state consistency and reliability
+- Code: selected-defense refresh source-of-truth handling
+- Data: no schema/id changes
+- UI: right-panel stat refresh behavior
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Make selected-panel refresh state-driven from controller selection on every status refresh, rather than relying on potentially stale label values or one-off signal payloads.
+
+Implementation notes:
+
+- Added `_refresh_selected_defense_panel()` in `GameplayRootController`:
+  - reads selected defense from `DefenseController.get_selected_defense()`
+  - updates id/level/damage/range/fire-rate/upgrade-cost/sell-refund from live state
+  - clears panel when no selection exists
+- `_update_status_labels()` now always calls `_refresh_selected_defense_panel()`.
+- `_on_defense_selected()` now delegates to `_refresh_selected_defense_panel()` for immediate consistency.
+- `_on_defense_sold()` now clears via shared refresh path (through status refresh) and keeps clear state deterministic.
+- Improved build hint message to use current selected build id (no stale hardcoded `manguerazo` text).
+- Existing smoke already validates selection switching (`manguerazo` <-> `cable_pelao`) and upgraded-damage persistence on reselection.
+
+Files likely affected:
+
+- `scripts/ui/gameplay_root_controller.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Minimal; refresh frequency is small and tied to existing status updates.
+
+Acceptance criteria:
+
+- Selecting either defense updates right panel immediately.
+- Upgrading selected defense updates level/damage panel immediately.
+- Selling selected defense clears panel state.
+- Switching away/back preserves upgraded stats display.

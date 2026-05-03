@@ -151,15 +151,6 @@ func reset_run_runtime() -> void:
 		defense_controller.reset_run_runtime()
 	_build_defense_id = "manguerazo"
 	build_selection_label.text = _build_defense_id
-	selected_defense_label.text = "None"
-	selected_level_label.text = "-"
-	selected_damage_label.text = "0"
-	selected_range_label.text = "0"
-	selected_fire_rate_label.text = "0"
-	upgrade_cost_label.text = "0"
-	sell_refund_label.text = "0"
-	upgrade_button.disabled = true
-	sell_button.disabled = true
 	_set_build_pads_enabled(false)
 	_update_status_labels()
 
@@ -272,7 +263,7 @@ func _on_pad_clicked(pad: Area2D) -> void:
 	var pad_id: String = String(pad.get("pad_id"))
 	var built: bool = defense_controller.build_defense(_build_defense_id, pad, pad_category)
 	if built:
-		build_hint_label.text = "Built manguerazo on %s" % pad_id
+		build_hint_label.text = "Built %s on %s" % [_build_defense_id, pad_id]
 		var latest_defense: DefenseActor = defense_layer.get_child(defense_layer.get_child_count() - 1) as DefenseActor
 		if latest_defense != null:
 			defense_controller.select_defense(latest_defense)
@@ -287,38 +278,10 @@ func _on_build_failed(reason: String) -> void:
 		_:
 			build_hint_label.text = "Build failed: %s" % reason
 
-func _on_defense_selected(defense: DefenseActor, refund_amount: int) -> void:
-	if defense == null:
-		selected_defense_label.text = "None"
-		selected_level_label.text = "-"
-		selected_damage_label.text = "0"
-		selected_range_label.text = "0"
-		selected_fire_rate_label.text = "0"
-		upgrade_cost_label.text = "0"
-		sell_refund_label.text = "0"
-		upgrade_button.disabled = true
-		sell_button.disabled = true
-		return
-	selected_defense_label.text = defense.defense_id
-	selected_level_label.text = str(defense.level)
-	selected_damage_label.text = "%.1f" % defense.damage
-	selected_range_label.text = "%.1f" % defense.attack_range
-	selected_fire_rate_label.text = "%.2f/s" % defense.fire_rate
-	upgrade_cost_label.text = str(defense.get_upgrade_cost())
-	sell_refund_label.text = str(refund_amount)
-	upgrade_button.disabled = _is_wave_running or not defense_controller.can_upgrade_selected_defense()
-	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
+func _on_defense_selected(_defense: DefenseActor, _refund_amount: int) -> void:
+	_refresh_selected_defense_panel()
 
 func _on_defense_sold(defense_id: String, refund_amount: int) -> void:
-	selected_defense_label.text = "None"
-	selected_level_label.text = "-"
-	selected_damage_label.text = "0"
-	selected_range_label.text = "0"
-	selected_fire_rate_label.text = "0"
-	upgrade_cost_label.text = "0"
-	sell_refund_label.text = "0"
-	upgrade_button.disabled = true
-	sell_button.disabled = true
 	build_hint_label.text = "Sold %s for %d gold" % [defense_id, refund_amount]
 	_update_status_labels()
 
@@ -362,20 +325,7 @@ func _update_status_labels() -> void:
 	spawned_enemies_label.text = str(_spawned_count)
 	leaked_enemies_label.text = str(_leaked_count)
 	build_selection_label.text = _build_defense_id
-	if selected_defense_label.text == "":
-		selected_defense_label.text = "None"
-	if selected_level_label.text == "":
-		selected_level_label.text = "-"
-	if selected_damage_label.text == "":
-		selected_damage_label.text = "0"
-	if selected_range_label.text == "":
-		selected_range_label.text = "0"
-	if selected_fire_rate_label.text == "":
-		selected_fire_rate_label.text = "0"
-	if upgrade_cost_label.text == "":
-		upgrade_cost_label.text = "0"
-	if sell_refund_label.text == "":
-		sell_refund_label.text = "0"
+	_refresh_selected_defense_panel()
 	upgrade_button.disabled = _is_wave_running or not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
 	select_manguerazo_button.disabled = _is_wave_running
@@ -497,3 +447,24 @@ func build_debug_first_pad_with(defense_id: String) -> bool:
 		return false
 	_build_defense_id = defense_id
 	return build_debug_first_pad()
+
+func _refresh_selected_defense_panel() -> void:
+	var defense: DefenseActor = defense_controller.get_selected_defense()
+	if defense == null:
+		selected_defense_label.text = "None"
+		selected_level_label.text = "-"
+		selected_damage_label.text = "0"
+		selected_range_label.text = "0"
+		selected_fire_rate_label.text = "0"
+		upgrade_cost_label.text = "0"
+		sell_refund_label.text = "0"
+		upgrade_button.disabled = true
+		sell_button.disabled = true
+		return
+	selected_defense_label.text = defense.defense_id
+	selected_level_label.text = str(defense.level)
+	selected_damage_label.text = "%.1f" % defense.damage
+	selected_range_label.text = "%.1f" % defense.attack_range
+	selected_fire_rate_label.text = "%.2f/s" % defense.fire_rate
+	upgrade_cost_label.text = str(defense.get_upgrade_cost())
+	sell_refund_label.text = str(defense_controller.get_selected_refund_amount())

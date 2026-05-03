@@ -159,6 +159,11 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(bool(gameplay.call("select_defense_by_id_for_debug", "cable_pelao")), "Expected selecting cable_pelao to succeed before gold rebalance."):
 		return false
+	if not _assert_true(String(gameplay.call("get_selected_defense_id")) == "cable_pelao", "Expected selected defense id to switch to cable_pelao."):
+		return false
+	var cable_damage: float = float(gameplay.call("get_selected_damage"))
+	if not _assert_true(cable_damage > 0.0 and cable_damage != level_1_damage, "Expected cable_pelao selected damage to be positive and different from manguerazo."):
+		return false
 	var cable_pre_upgrade_refund: int = int(gameplay.call("sell_selected_for_debug"))
 	if not _assert_true(cable_pre_upgrade_refund == 50, "Expected pre-wave cable_pelao sell refund to be 50 gold (100% of base cost)."):
 		return false
@@ -175,6 +180,12 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(is_equal_approx(level_2_damage, level_1_damage * 1.5), "Expected level 2 damage to be level 1 damage * 1.5."):
 		return false
 	if not _assert_true(int(gameplay.call("get_selected_upgrade_cost")) == 0, "Expected no further upgrade cost at max level."):
+		return false
+	if not _assert_true(String(gameplay.call("get_selected_defense_id")) == "manguerazo", "Expected selected defense to remain manguerazo after upgrade refresh."):
+		return false
+	if not _assert_true(int(gameplay.call("get_selected_level")) == 2, "Expected selected panel to show level 2 after upgrade."):
+		return false
+	if not _assert_true(is_equal_approx(float(gameplay.call("get_selected_damage")), level_2_damage), "Expected selected panel to show upgraded damage after upgrade."):
 		return false
 	if not _assert_true(not bool(gameplay.call("upgrade_selected_for_debug")), "Expected second upgrade attempt to fail at max level."):
 		return false
