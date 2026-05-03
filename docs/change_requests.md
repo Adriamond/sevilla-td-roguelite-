@@ -1341,3 +1341,69 @@ Acceptance criteria:
 - Board center area stays clear of side panels.
 - Start Wave/Force Complete and selected-defense controls remain visible/reachable by phase.
 - Existing gameplay flow remains intact.
+
+---
+
+## CR-011 - Add second basic defense cable_pelao
+
+Status: implemented
+Date: 2026-05-03
+
+Requester intent:
+
+Introduce a second basic build choice so early gameplay has meaningful placement/tuning decisions beyond a single defense.
+
+Affected areas:
+
+- Design: two-defense tactical choice in MVP
+- Code: compact build-type selector and dual-defense validation coverage
+- Data: tune/add `cable_pelao` DefenseDef values
+- UI: left-panel build selector buttons
+- Balance: basic stat profile differentiation only
+- Docs: CR tracking update
+
+Decision:
+
+Keep one shared defense actor architecture and add `cable_pelao` as a second data-driven profile with distinct short-range/high-fire-rate behavior. Keep shop/elements/status out of scope.
+
+Implementation notes:
+
+- Tuned `data/defenses/cable_pelao.tres` profile:
+  - lower damage
+  - shorter range
+  - faster fire rate
+  - slightly lower cost
+- Added compact build selector controls in gameplay left panel:
+  - `Build Manguerazo`
+  - `Build Cable Pelao`
+  - selected build id display
+- Pad clicks now build whichever defense id is currently selected.
+- `DefenseActor` now applies a simple visual profile by defense id:
+  - `manguerazo`: cyan water-like
+  - `cable_pelao`: yellow electric-like
+- Selling/selection/upgrade flows remain generic and work for both defenses.
+- Extended validations:
+  - `validate_project.gd` now initializes and sanity-checks `cable_pelao` setup.
+  - `validate_flow_smoke.gd` now verifies build/select/sell for both defense ids, while preserving wave/reward lifecycle assertions.
+- No status effects, elements, synergies, or shop UI were added.
+
+Files likely affected:
+
+- `data/defenses/cable_pelao.tres`
+- `scenes/gameplay/gameplay_root.tscn`
+- `scripts/ui/gameplay_root_controller.gd`
+- `scripts/gameplay/defense_actor.gd`
+- `tools/validate_project.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- Visual differentiation is debug-placeholder only and may be replaced by final art direction later.
+
+Acceptance criteria:
+
+- Both defense types are selectable/buildable and visually distinguishable.
+- Both can be selected and sold.
+- Wave/reward flow remains stable.
+- No status/elements/synergies/shop scope added.

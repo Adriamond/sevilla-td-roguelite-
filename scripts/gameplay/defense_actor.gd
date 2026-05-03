@@ -24,6 +24,7 @@ var _wave_controller: WaveController = null
 @onready var range_circle: Line2D = get_node_or_null("%RangeCircle")
 @onready var attack_beam: Line2D = get_node_or_null("%AttackBeam")
 @onready var click_area: Area2D = get_node_or_null("%ClickArea")
+@onready var body_polygon: Polygon2D = get_node_or_null("%Body")
 
 var _beam_timer: float = 0.0
 
@@ -41,6 +42,7 @@ func setup_from_def(defense_def: Resource, wave_controller: WaveController) -> v
 
 	if label != null:
 		label.text = defense_id
+	_apply_visual_profile()
 	_draw_range_circle()
 	if click_area != null and not click_area.is_connected("input_event", _on_click_area_input_event):
 		click_area.connect("input_event", _on_click_area_input_event)
@@ -125,3 +127,19 @@ func apply_upgrade() -> bool:
 	damage *= 1.5
 	total_invested_cost += UPGRADE_COST
 	return true
+
+func _apply_visual_profile() -> void:
+	if defense_id == "cable_pelao":
+		if body_polygon != null:
+			body_polygon.color = Color(0.98, 0.83, 0.22, 1.0)
+		if range_circle != null:
+			range_circle.default_color = Color(0.98, 0.83, 0.22, 0.24)
+		if attack_beam != null:
+			attack_beam.default_color = Color(1.0, 0.92, 0.38, 0.95)
+	else:
+		if body_polygon != null:
+			body_polygon.color = Color(0.16, 0.78, 1.0, 1.0)
+		if range_circle != null:
+			range_circle.default_color = Color(0.3, 0.85, 1.0, 0.24)
+		if attack_beam != null:
+			attack_beam.default_color = Color(0.46, 0.95, 1.0, 0.95)

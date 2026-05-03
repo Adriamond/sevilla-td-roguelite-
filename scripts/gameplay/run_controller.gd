@@ -7,12 +7,12 @@ signal run_ended(victory: bool)
 signal state_changed(new_state: RunStateType)
 
 enum RunStateType {
-    ROOM,
-    BUILD_PHASE,
-    WAVE_RUNNING,
-    REWARD_SELECTION,
-    VICTORY,
-    DEFEAT
+	ROOM,
+	BUILD_PHASE,
+	WAVE_RUNNING,
+	REWARD_SELECTION,
+	VICTORY,
+	DEFEAT
 }
 
 var current_state: RunStateType = RunStateType.ROOM

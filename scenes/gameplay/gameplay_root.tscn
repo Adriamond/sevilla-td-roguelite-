@@ -1,240 +1,299 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://bsvunowmih5ud"]
 
-[ext_resource type="Script" path="res://scripts/ui/gameplay_root_controller.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/gameplay/path_controller.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/gameplay/spawn_controller.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/gameplay/wave_controller.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/gameplay/defense_controller.gd" id="5"]
+[ext_resource type="Script" uid="uid://naj6dksusl4r" path="res://scripts/ui/gameplay_root_controller.gd" id="1"]
+[ext_resource type="Script" uid="uid://dn1t50hbs77ol" path="res://scripts/gameplay/path_controller.gd" id="2"]
+[ext_resource type="Script" uid="uid://cn41vglitgbcx" path="res://scripts/gameplay/spawn_controller.gd" id="3"]
+[ext_resource type="Script" uid="uid://bmk37j126ulyk" path="res://scripts/gameplay/wave_controller.gd" id="4"]
+[ext_resource type="Script" uid="uid://batfny3oj5a17" path="res://scripts/gameplay/defense_controller.gd" id="5"]
 
-[node name="GameplayRoot" type="Node2D"]
+[node name="GameplayRoot" type="Node2D" unique_id=2121319812]
 script = ExtResource("1")
 
-[node name="MainCamera" type="Camera2D" parent="."]
+[node name="MainCamera" type="Camera2D" parent="." unique_id=1242555158]
 position = Vector2(640, 360)
-enabled = true
 
-[node name="MapContainer" type="Node2D" parent="."]
+[node name="MapContainer" type="Node2D" parent="." unique_id=323755218]
 unique_name_in_owner = true
 
-[node name="EnemyLayer" type="Node2D" parent="."]
+[node name="EnemyLayer" type="Node2D" parent="." unique_id=449474467]
 unique_name_in_owner = true
 z_index = 20
 
-[node name="DefenseLayer" type="Node2D" parent="."]
+[node name="DefenseLayer" type="Node2D" parent="." unique_id=543581656]
 unique_name_in_owner = true
 z_index = 25
 
-[node name="Systems" type="Node" parent="."]
+[node name="Systems" type="Node" parent="." unique_id=1711424226]
 
-[node name="PathController" type="Node" parent="Systems"]
+[node name="PathController" type="Node" parent="Systems" unique_id=2146928319]
 unique_name_in_owner = true
 script = ExtResource("2")
 
-[node name="SpawnController" type="Node" parent="Systems"]
+[node name="SpawnController" type="Node" parent="Systems" unique_id=2088919944]
 unique_name_in_owner = true
 script = ExtResource("3")
 
-[node name="WaveController" type="Node" parent="Systems"]
+[node name="WaveController" type="Node" parent="Systems" unique_id=1519201674]
 unique_name_in_owner = true
 script = ExtResource("4")
 
-[node name="DefenseController" type="Node" parent="Systems"]
+[node name="DefenseController" type="Node" parent="Systems" unique_id=1256664270]
 unique_name_in_owner = true
 script = ExtResource("5")
 
-[node name="UILayer" type="CanvasLayer" parent="."]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1147004116]
 
-[node name="TopBar" type="ColorRect" parent="UILayer"]
+[node name="TopBar" type="ColorRect" parent="UILayer" unique_id=367765313]
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 1272.0
 offset_bottom = 48.0
 color = Color(0.06, 0.08, 0.12, 0.82)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/TopBar"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/TopBar" unique_id=732172155]
+layout_mode = 0
 offset_left = 10.0
 offset_top = 8.0
 offset_right = 1254.0
 offset_bottom = 32.0
 theme_override_constants/separation = 18
 
-[node name="PhaseLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="PhaseLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1018139049]
 unique_name_in_owner = true
-text = "Build Phase"
+layout_mode = 2
 theme_override_font_sizes/font_size = 13
+text = "Build Phase"
 
-[node name="RoundLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="RoundLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=2106596058]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "Round:"
-theme_override_font_sizes/font_size = 12
 
-[node name="RoundValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="RoundValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=632945450]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "1"
-theme_override_font_sizes/font_size = 12
 
-[node name="CoreHPLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="CoreHPLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1331540052]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "Core HP:"
-theme_override_font_sizes/font_size = 12
 
-[node name="CoreHPValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="CoreHPValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=2118976500]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "20"
-theme_override_font_sizes/font_size = 12
 
-[node name="GoldLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="GoldLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=410913515]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
 text = "Gold:"
-theme_override_font_sizes/font_size = 12
 
-[node name="GoldValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer"]
+[node name="GoldValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1850541731]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "0"
 
-[node name="LeftPanel" type="ColorRect" parent="UILayer"]
+[node name="LeftPanel" type="ColorRect" parent="UILayer" unique_id=576891703]
 offset_left = 8.0
 offset_top = 60.0
 offset_right = 228.0
 offset_bottom = 712.0
 color = Color(0.06, 0.08, 0.12, 0.78)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/LeftPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/LeftPanel" unique_id=1130559878]
+layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 212.0
 offset_bottom = 644.0
 
-[node name="PhaseActionButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="BuildSelectionLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=730820844]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Build selected:"
+
+[node name="BuildSelectionValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=374138897]
 unique_name_in_owner = true
-text = "Start Wave"
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "manguerazo"
+
+[node name="SelectManguerazoButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=956741799]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Build Manguerazo"
+
+[node name="SelectCablePelaoButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=647654175]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Build Cable Pelao"
+
+[node name="PhaseActionButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=887216138]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "Start Wave"
 
-[node name="ForceCompleteButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="ForceCompleteButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=960445157]
 unique_name_in_owner = true
-text = "[DEBUG] Force Complete"
 visible = false
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "[DEBUG] Force Complete"
 
-[node name="ActiveEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="ActiveEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=787642378]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Active enemies:"
-theme_override_font_sizes/font_size = 11
 
-[node name="ActiveEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="ActiveEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1124616895]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="SpawnedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="SpawnedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1086578199]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Spawned:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SpawnedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="SpawnedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=465605060]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="LeakedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="LeakedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1181849406]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Leaked:"
-theme_override_font_sizes/font_size = 11
 
-[node name="LeakedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer"]
+[node name="LeakedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1923425324]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="RightPanel" type="ColorRect" parent="UILayer"]
+[node name="RightPanel" type="ColorRect" parent="UILayer" unique_id=982006059]
 offset_left = 1052.0
 offset_top = 60.0
 offset_right = 1272.0
 offset_bottom = 712.0
 color = Color(0.06, 0.08, 0.12, 0.78)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel" unique_id=491644591]
+layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 212.0
 offset_bottom = 644.0
 
-[node name="BuildHintLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="BuildHintLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1130229477]
 unique_name_in_owner = true
-text = "Click pad to build manguerazo"
+layout_mode = 2
 theme_override_font_sizes/font_size = 10
+text = "Click pad to build manguerazo"
 autowrap_mode = 3
 
-[node name="SelectedDefenseLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedDefenseLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1796122712]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Selected:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedDefenseValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedDefenseValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=117633442]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "None"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedLevelLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedLevelLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1918867046]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Level:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedLevelValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedLevelValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1017470211]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "-"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedDamageLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedDamageLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=273577213]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Damage:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedDamageValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedDamageValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1240645151]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="SelectedRangeLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedRangeLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=338674105]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Range:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedRangeValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedRangeValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=2001283376]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="SelectedFireRateLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedFireRateLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=46848875]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Fire rate:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SelectedFireRateValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SelectedFireRateValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=217084656]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="UpgradeCostLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="UpgradeCostLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1747530410]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Upgrade cost:"
-theme_override_font_sizes/font_size = 11
 
-[node name="UpgradeCostValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="UpgradeCostValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1738128520]
 unique_name_in_owner = true
-text = "0"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "0"
 
-[node name="SellRefundLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SellRefundLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1941177800]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Sell refund:"
-theme_override_font_sizes/font_size = 11
 
-[node name="SellRefundValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SellRefundValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1511315412]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "0"
-theme_override_font_sizes/font_size = 11
 
-[node name="UpgradeDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="UpgradeDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer" unique_id=649487395]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+disabled = true
 text = "Upgrade (+45)"
-disabled = true
-theme_override_font_sizes/font_size = 11
 
-[node name="SellDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer"]
+[node name="SellDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer" unique_id=1182384238]
 unique_name_in_owner = true
-text = "Sell Selected"
-disabled = true
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+disabled = true
+text = "Sell Selected"
 
+[connection signal="pressed" from="UILayer/LeftPanel/VBoxContainer/SelectManguerazoButton" to="." method="select_build_manguerazo"]
+[connection signal="pressed" from="UILayer/LeftPanel/VBoxContainer/SelectCablePelaoButton" to="." method="select_build_cable_pelao"]
 [connection signal="pressed" from="UILayer/LeftPanel/VBoxContainer/PhaseActionButton" to="." method="request_phase_action"]
 [connection signal="pressed" from="UILayer/LeftPanel/VBoxContainer/ForceCompleteButton" to="." method="request_force_complete"]
 [connection signal="pressed" from="UILayer/RightPanel/VBoxContainer/UpgradeDefenseButton" to="." method="request_upgrade_selected_defense"]

@@ -16,6 +16,9 @@ signal core_depleted
 @onready var active_enemies_label: Label = %ActiveEnemiesValueLabel
 @onready var spawned_enemies_label: Label = %SpawnedEnemiesValueLabel
 @onready var leaked_enemies_label: Label = %LeakedEnemiesValueLabel
+@onready var build_selection_label: Label = %BuildSelectionValueLabel
+@onready var select_manguerazo_button: Button = %SelectManguerazoButton
+@onready var select_cable_pelao_button: Button = %SelectCablePelaoButton
 @onready var build_hint_label: Label = %BuildHintLabel
 @onready var selected_defense_label: Label = %SelectedDefenseValueLabel
 @onready var selected_level_label: Label = %SelectedLevelValueLabel
@@ -54,6 +57,8 @@ func show_build_phase() -> void:
 	action_button.disabled = false
 	force_complete_button.visible = false
 	force_complete_button.disabled = true
+	select_manguerazo_button.disabled = false
+	select_cable_pelao_button.disabled = false
 	upgrade_button.disabled = not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = not defense_controller.can_sell_selected_defense()
 	_set_build_pads_enabled(true)
@@ -68,6 +73,8 @@ func show_wave_running() -> void:
 	action_button.disabled = true
 	force_complete_button.visible = true
 	force_complete_button.disabled = false
+	select_manguerazo_button.disabled = true
+	select_cable_pelao_button.disabled = true
 	upgrade_button.disabled = true
 	sell_button.disabled = true
 	_set_build_pads_enabled(false)
@@ -142,6 +149,8 @@ func reset_run_runtime() -> void:
 	_clear_defense_layer()
 	if defense_controller != null:
 		defense_controller.reset_run_runtime()
+	_build_defense_id = "manguerazo"
+	build_selection_label.text = _build_defense_id
 	selected_defense_label.text = "None"
 	selected_level_label.text = "-"
 	selected_damage_label.text = "0"
@@ -352,6 +361,7 @@ func _update_status_labels() -> void:
 	active_enemies_label.text = str(wave_controller.get_active_enemy_count())
 	spawned_enemies_label.text = str(_spawned_count)
 	leaked_enemies_label.text = str(_leaked_count)
+	build_selection_label.text = _build_defense_id
 	if selected_defense_label.text == "":
 		selected_defense_label.text = "None"
 	if selected_level_label.text == "":
@@ -368,6 +378,8 @@ func _update_status_labels() -> void:
 		sell_refund_label.text = "0"
 	upgrade_button.disabled = _is_wave_running or not defense_controller.can_upgrade_selected_defense()
 	sell_button.disabled = _is_wave_running or not defense_controller.can_sell_selected_defense()
+	select_manguerazo_button.disabled = _is_wave_running
+	select_cable_pelao_button.disabled = _is_wave_running
 
 func _clear_enemy_layer() -> void:
 	if enemy_layer == null:
@@ -457,3 +469,31 @@ func select_first_defense_for_debug() -> bool:
 			continue
 		return defense_controller.select_defense(defense)
 	return false
+
+func select_defense_by_id_for_debug(defense_id: String) -> bool:
+	if defense_id.is_empty():
+		return false
+	for child: Node in defense_layer.get_children():
+		var defense: DefenseActor = child as DefenseActor
+		if defense == null:
+			continue
+		if defense.defense_id != defense_id:
+			continue
+		return defense_controller.select_defense(defense)
+	return false
+
+func select_build_manguerazo() -> void:
+	_build_defense_id = "manguerazo"
+	build_hint_label.text = "Build selected: manguerazo"
+	_update_status_labels()
+
+func select_build_cable_pelao() -> void:
+	_build_defense_id = "cable_pelao"
+	build_hint_label.text = "Build selected: cable_pelao"
+	_update_status_labels()
+
+func build_debug_first_pad_with(defense_id: String) -> bool:
+	if defense_id.is_empty():
+		return false
+	_build_defense_id = defense_id
+	return build_debug_first_pad()

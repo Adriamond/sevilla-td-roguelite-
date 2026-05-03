@@ -138,10 +138,40 @@ func _init() -> void:
 		print("Project validation failed: defense actor click area is missing for selection/selling flow.")
 		quit(1)
 		return
+	var cable_def: Resource = load("res://data/defenses/cable_pelao.tres")
+	if cable_def == null:
+		print("Project validation failed: cable_pelao.tres could not be loaded.")
+		quit(1)
+		return
+	var cable_instance: Node2D = defense_scene.instantiate() as Node2D
+	if cable_instance == null:
+		print("Project validation failed: could not instantiate second defense actor for cable_pelao.")
+		quit(1)
+		return
+	get_root().add_child(cable_instance)
+	if cable_instance.has_method("setup_from_def"):
+		cable_instance.call("setup_from_def", cable_def, wave_controller)
+	if String(cable_instance.get("defense_id")) != "cable_pelao":
+		print("Project validation failed: defense actor did not initialize with cable_pelao.")
+		quit(1)
+		return
+	if float(cable_instance.get("damage")) >= float(defense_instance.get("damage")):
+		print("Project validation failed: cable_pelao damage should be lower than manguerazo baseline.")
+		quit(1)
+		return
+	if float(cable_instance.get("attack_range")) >= float(defense_instance.get("attack_range")):
+		print("Project validation failed: cable_pelao range should be shorter than manguerazo baseline.")
+		quit(1)
+		return
+	if float(cable_instance.get("fire_rate")) <= float(defense_instance.get("fire_rate")):
+		print("Project validation failed: cable_pelao fire_rate should be faster than manguerazo baseline.")
+		quit(1)
+		return
 
 	enemy_instance.queue_free()
 	map_instance.queue_free()
 	defense_instance.queue_free()
+	cable_instance.queue_free()
 	wave_controller.queue_free()
 
 	print("Project validation OK.")

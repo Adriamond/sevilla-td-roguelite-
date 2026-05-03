@@ -140,11 +140,13 @@ func _validate_runtime_persistence() -> bool:
 		wave_controller.set("use_async_timers", false)
 	if not _assert_true(String(gameplay.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to be Build Phase after Continue."):
 		return false
-	if not _assert_true(bool(gameplay.call("build_debug_first_pad")), "Expected to build one defense in build phase."):
+	if not _assert_true(bool(gameplay.call("build_debug_first_pad_with", "manguerazo")), "Expected to build manguerazo in build phase."):
 		return false
-	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense count=1 after initial build."):
+	if not _assert_true(bool(gameplay.call("build_debug_first_pad_with", "cable_pelao")), "Expected to build cable_pelao in build phase."):
 		return false
-	if not _assert_true(bool(gameplay.call("select_first_defense_for_debug")), "Expected selecting first defense to succeed in build phase."):
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 2, "Expected defense count=2 after building both basic defenses."):
+		return false
+	if not _assert_true(bool(gameplay.call("select_defense_by_id_for_debug", "manguerazo")), "Expected selecting manguerazo to succeed in build phase."):
 		return false
 	if not _assert_true(String(gameplay.call("get_selected_defense_id")) == "manguerazo", "Expected selected defense id to be manguerazo."):
 		return false
@@ -154,6 +156,14 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(level_1_damage > 0.0, "Expected positive level 1 selected defense damage."):
 		return false
 	if not _assert_true(int(gameplay.call("get_selected_upgrade_cost")) == 45, "Expected selected upgrade cost to be 45 at level 1."):
+		return false
+	if not _assert_true(bool(gameplay.call("select_defense_by_id_for_debug", "cable_pelao")), "Expected selecting cable_pelao to succeed before gold rebalance."):
+		return false
+	var cable_pre_upgrade_refund: int = int(gameplay.call("sell_selected_for_debug"))
+	if not _assert_true(cable_pre_upgrade_refund == 50, "Expected pre-wave cable_pelao sell refund to be 50 gold (100% of base cost)."):
+		return false
+	await process_frame
+	if not _assert_true(bool(gameplay.call("select_defense_by_id_for_debug", "manguerazo")), "Expected selecting manguerazo again to upgrade after cable sell."):
 		return false
 	if not _assert_true(bool(gameplay.call("upgrade_selected_for_debug")), "Expected upgrading selected defense in build phase to succeed."):
 		return false
@@ -170,18 +180,18 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	var gold_before_sell: int = int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold"))
 	var refund: int = int(gameplay.call("sell_selected_for_debug"))
-	if not _assert_true(refund == 100, "Expected pre-wave upgraded sell refund to be 100 gold (100% of total invested cost)."):
+	if not _assert_true(refund == 100, "Expected pre-wave upgraded manguerazo sell refund to be 100 gold (100% of total invested cost)."):
 		return false
 	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_sell + refund, "Expected gold to increase by sell refund."):
 		return false
 	await process_frame
-	if not _assert_true(int(gameplay.call("get_defense_count")) == 0, "Expected defense count=0 after selling selected defense."):
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 0, "Expected defense count=0 after selling selected manguerazo."):
 		return false
-	if not _assert_true(bool(gameplay.call("build_debug_first_pad")), "Expected first pad to be buildable again after selling."):
+	if not _assert_true(bool(gameplay.call("build_debug_first_pad_with", "manguerazo")), "Expected pad to be buildable again for manguerazo after selling."):
 		return false
-	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense rebuild after sell to succeed."):
+	if not _assert_true(int(gameplay.call("get_defense_count")) == 1, "Expected defense rebuild for manguerazo after selling to succeed."):
 		return false
-	if not _assert_true(bool(gameplay.call("select_first_defense_for_debug")), "Expected selecting rebuilt defense to succeed before wave start."):
+	if not _assert_true(bool(gameplay.call("select_defense_by_id_for_debug", "manguerazo")), "Expected selecting rebuilt manguerazo to succeed before wave start."):
 		return false
 	if not _assert_true(bool(gameplay.call("upgrade_selected_for_debug")), "Expected upgrading rebuilt defense to succeed before wave."):
 		return false
@@ -195,7 +205,7 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(int(gameplay_after_wave_start.call("get_defense_count")) == 1, "Expected defense to persist from build to wave."):
 		return false
-	if not _assert_true(bool(gameplay_after_wave_start.call("select_first_defense_for_debug")), "Expected selecting defense in wave phase to still work for UI/debug checks."):
+	if not _assert_true(bool(gameplay_after_wave_start.call("select_defense_by_id_for_debug", "manguerazo")), "Expected selecting manguerazo in wave phase to still work for UI/debug checks."):
 		return false
 	if not _assert_true(not bool(gameplay_after_wave_start.call("upgrade_selected_for_debug")), "Expected upgrading to be blocked during Wave Running."):
 		return false
@@ -216,7 +226,7 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(int(gameplay_next_round.call("get_defense_count")) == 1, "Expected defense to persist across rounds in same run."):
 		return false
-	if not _assert_true(bool(gameplay_next_round.call("select_first_defense_for_debug")), "Expected selecting persisted defense in next build phase to succeed."):
+	if not _assert_true(bool(gameplay_next_round.call("select_defense_by_id_for_debug", "manguerazo")), "Expected selecting persisted manguerazo in next build phase to succeed."):
 		return false
 	if not _assert_true(int(gameplay_next_round.call("get_selected_level")) == 2, "Expected upgraded defense level to persist into next round build phase."):
 		return false
@@ -228,7 +238,6 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(int(_ensure_singleton("RunState", "res://autoload/run_state.gd").get("gold")) == gold_before_post_wave_sell + post_wave_refund, "Expected gold to increase by post-wave refund amount."):
 		return false
-
 	boot.queue_free()
 	await process_frame
 	return true
