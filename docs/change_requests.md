@@ -1811,3 +1811,52 @@ Acceptance criteria:
 - Current Pino Montano map passes contract checks.
 - Contract failures are explicit and map-specific.
 - Existing gameplay behavior is unchanged.
+
+## CR-A6 - Clean Godot shutdown leak warnings from validation runner
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Reduce or eliminate non-fatal shutdown leak warnings in headless validation scripts while keeping validation strict.
+
+Affected areas:
+
+- Design: validation reliability/readability
+- Code: cleanup lifecycle in validation scripts
+- Data: none
+- UI: none
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Refactor validation scripts to ensure deterministic teardown of instantiated nodes and enough frame draining before exit.
+
+Implementation notes:
+
+- `validate_project.gd` now runs in deferred async flow with centralized node tracking and cleanup on success/failure.
+- Added consistent `_track_node()` and `_cleanup_created_nodes()` usage to avoid orphaned nodes/timers.
+- `validate_flow_smoke.gd` now tracks temporary boot instances, waits additional frames, and drains pending timers before final quit.
+- Validation behavior and assertions were preserved (no weakening).
+- `validate_project.gd` no longer emits shutdown leak/resource warnings in verbose runs after cleanup hardening.
+- Remaining warning source identified in `validate_flow_smoke.gd` verbose run:
+  - `Leaked instance: SceneTreeTimer ...`
+  - `Orphan StringName: timeout`
+  This appears tied to async timer teardown at process shutdown after heavy wave/boot smoke orchestration. It is non-fatal (exit code 0) and does not change gameplay state.
+
+Files likely affected:
+
+- `tools/validate_project.gd`
+- `tools/validate_flow_smoke.gd`
+- `docs/change_requests.md`
+
+Risks:
+
+- A single non-fatal `SceneTreeTimer` shutdown warning may still appear from flow smoke teardown timing.
+
+Acceptance criteria:
+
+- Validation pipeline still passes.
+- Cleanup behavior is stricter and minimizes shutdown leak warnings without hiding output.

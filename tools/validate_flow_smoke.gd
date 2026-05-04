@@ -5,6 +5,7 @@ const DEBUG_CHARACTER_ID: String = "manue_el_encerrado"
 const DEBUG_MAP_ID: String = "pino_montano_bloques_bulevar"
 
 var _created_nodes: Array[Node] = []
+var _exit_requested: bool = false
 
 func _init() -> void:
 	call_deferred("_run_validation")
@@ -74,9 +75,10 @@ func _run_validation() -> void:
 	if not await _validate_defeat_flow():
 		return
 
+	await _drain_frames(24)
 	await _cleanup_created_nodes()
 	print("Flow smoke validation OK.")
-	quit(0)
+	_request_exit(0)
 
 func _assert_state(controller: Node, expected: int, name: String) -> bool:
 	var current_state: int = int(controller.get("current_state"))
@@ -93,7 +95,7 @@ func _assert_true(condition: bool, message: String) -> bool:
 
 func _fail(message: String) -> void:
 	push_error(message)
-	quit(1)
+	_request_exit(1)
 
 func _ensure_singleton(node_name: String, script_path: String) -> Node:
 	var existing: Node = get_root().get_node_or_null(node_name)
@@ -214,7 +216,7 @@ func _validate_runtime_persistence() -> bool:
 	if boot == null:
 		_fail("Could not instantiate boot scene for lifecycle smoke validation.")
 		return false
-	get_root().add_child(boot)
+	_track_node(boot)
 
 	boot.call("_on_start_game_requested")
 	await process_frame
@@ -405,6 +407,7 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	boot.queue_free()
 	await process_frame
+	await process_frame
 	return true
 
 func _validate_defeat_flow() -> bool:
@@ -417,7 +420,7 @@ func _validate_defeat_flow() -> bool:
 	if boot == null:
 		_fail("Could not instantiate boot scene for defeat flow validation.")
 		return false
-	get_root().add_child(boot)
+	_track_node(boot)
 
 	boot.call("_on_start_game_requested")
 	await process_frame
@@ -440,6 +443,7 @@ func _validate_defeat_flow() -> bool:
 
 	boot.queue_free()
 	await process_frame
+	await process_frame
 	return true
 
 func _track_node(node: Node) -> void:
@@ -454,5 +458,22 @@ func _cleanup_created_nodes() -> void:
 		if node == null or not is_instance_valid(node):
 			continue
 		node.queue_free()
+	_created_nodes.clear()
 	await process_frame
 	await process_frame
+	await process_frame
+	await _drain_frames(24)
+
+func _request_exit(code: int) -> void:
+	if _exit_requested:
+		return
+	_exit_requested = true
+	call_deferred("_exit_after_cleanup", code)
+
+func _exit_after_cleanup(code: int) -> void:
+	await _cleanup_created_nodes()
+	quit(code)
+
+func _drain_frames(frame_count: int) -> void:
+	for i: int in range(max(frame_count, 0)):
+		await process_frame
