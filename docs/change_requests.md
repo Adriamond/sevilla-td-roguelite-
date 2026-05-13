@@ -2277,3 +2277,54 @@ Acceptance criteria:
 - Left build panel, right selected-defense panel, and top status bar stay inside the viewport.
 - Map playfield remains large enough for desktop readability.
 - Validation suite passes.
+
+## CR-BIGMAP-1 - Add gameplay camera panning/zooming and map bounds clamping as preparation for larger maps
+
+Status: implemented
+Date: 2026-05-14
+
+Requester intent:
+
+Prepare the gameplay world for future larger maps by adding camera navigation infrastructure without changing current map size, path shape, gameplay balance, rewards, or room flow.
+
+Affected areas:
+
+- Design: world/HUD separation and navigation readiness
+- Code: gameplay camera controls, map bounds API, deterministic camera validation
+- Data: none
+- UI: HUD remains fixed in `CanvasLayer`
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep the existing small Pino Montano map intact, use its exposed map bounds for camera clamping, and add WASD pan plus mouse wheel zoom on the gameplay `Camera2D`.
+
+Implementation notes:
+
+- Godot AI MCP direct JSON-RPC read-only inspection confirmed the editor was playing `res://scenes/gameplay/gameplay_root.tscn`.
+- No MCP write actions were used because the editor was in playing state.
+- `PinoMontanoMap` now exposes `get_map_bounds()` based on the current background polygon, with a fallback route-derived bounds.
+- `GameplayRootController` now:
+  - makes `MainCamera` current on ready;
+  - centers the camera on the loaded map bounds;
+  - pans with WASD;
+  - zooms with mouse wheel;
+  - clamps zoom to the MVP debug range;
+  - clamps camera position to map-derived world bounds with limited viewport padding for the current small map.
+- HUD panels remain in `UILayer`/`CanvasLayer` and do not move or zoom with the world.
+- `validate_project.gd` now checks map bounds availability and camera navigation sanity, including zoom clamping and camera clamp containment.
+- No map enlargement, path corridor conversion, walls, minimap, reward changes, balance changes, or room-flow changes were made.
+
+Risks:
+
+- The current map is smaller than the 1600x900 viewport, so clamping intentionally allows only limited panning until CR-BIGMAP-2 enlarges the world footprint.
+- Manual Play/F5 is still required to confirm input feel and click behavior after pan/zoom.
+
+Acceptance criteria:
+
+- WASD camera panning and mouse wheel zoom are implemented.
+- Camera clamps to current map-derived world bounds.
+- HUD remains fixed and readable.
+- Build/select/sell/upgrade and wave flow are unchanged.
+- Validation suite passes.

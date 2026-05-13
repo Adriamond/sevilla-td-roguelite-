@@ -313,9 +313,75 @@ func _validate_gameplay_layout_contract() -> bool:
 	for viewport_size: Vector2 in viewport_sizes:
 		if not await _validate_gameplay_layout_for_size(gameplay, viewport_size):
 			return false
+	if not await _validate_gameplay_camera_navigation(gameplay):
+		return false
 
 	gameplay.queue_free()
 	await process_frame
+	return true
+
+func _validate_gameplay_camera_navigation(gameplay: Node2D) -> bool:
+	if not gameplay.has_method("ensure_map_loaded_for_debug"):
+		await _fail("Project validation failed: gameplay root is missing map load debug API for camera checks.")
+		return false
+	if not bool(gameplay.call("ensure_map_loaded_for_debug")):
+		await _fail("Project validation failed: gameplay root could not load map for camera checks.")
+		return false
+	if not gameplay.has_method("get_camera_navigation_debug_state") \
+		or not gameplay.has_method("set_camera_zoom_for_debug") \
+		or not gameplay.has_method("move_camera_for_debug"):
+		await _fail("Project validation failed: gameplay root is missing camera navigation debug API.")
+		return false
+
+	var state: Dictionary = gameplay.call("get_camera_navigation_debug_state")
+	if not bool(state.get("camera_exists", false)):
+		await _fail("Project validation failed: gameplay camera does not exist.")
+		return false
+	if not bool(state.get("camera_enabled", false)):
+		await _fail("Project validation failed: gameplay camera is not enabled/current-capable.")
+		return false
+	var min_zoom: float = float(state.get("min_zoom", 0.0))
+	var max_zoom: float = float(state.get("max_zoom", 0.0))
+	if min_zoom <= 0.0 or max_zoom <= min_zoom:
+		await _fail("Project validation failed: gameplay camera zoom bounds are invalid: min=%s max=%s" % [str(min_zoom), str(max_zoom)])
+		return false
+	var map_bounds: Rect2 = state.get("map_world_bounds", Rect2())
+	if map_bounds.size.x <= 0.0 or map_bounds.size.y <= 0.0:
+		await _fail("Project validation failed: gameplay map world bounds are invalid: %s" % str(map_bounds))
+		return false
+	var clamp_bounds: Rect2 = state.get("clamp_bounds", Rect2())
+	if clamp_bounds.size.x <= 0.0 or clamp_bounds.size.y <= 0.0:
+		await _fail("Project validation failed: gameplay camera clamp bounds are invalid: %s" % str(clamp_bounds))
+		return false
+	if not _rect_contains_rect(clamp_bounds, map_bounds):
+		await _fail("Project validation failed: gameplay camera clamp bounds should contain map bounds: clamp=%s map=%s" % [str(clamp_bounds), str(map_bounds)])
+		return false
+
+	gameplay.call("set_camera_zoom_for_debug", max_zoom * 10.0)
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if float(state.get("current_zoom", 0.0)) > max_zoom + 0.001:
+		await _fail("Project validation failed: gameplay camera zoom did not clamp to max.")
+		return false
+	gameplay.call("set_camera_zoom_for_debug", min_zoom * 0.1)
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if float(state.get("current_zoom", 0.0)) < min_zoom - 0.001:
+		await _fail("Project validation failed: gameplay camera zoom did not clamp to min.")
+		return false
+
+	gameplay.call("move_camera_for_debug", Vector2(100000.0, 100000.0))
+	state = gameplay.call("get_camera_navigation_debug_state")
+	var camera_position: Vector2 = state.get("camera_position", Vector2.ZERO)
+	clamp_bounds = state.get("clamp_bounds", Rect2())
+	if not _point_inside_rect(camera_position, clamp_bounds):
+		await _fail("Project validation failed: gameplay camera escaped positive clamp bounds: position=%s clamp=%s" % [str(camera_position), str(clamp_bounds)])
+		return false
+	gameplay.call("move_camera_for_debug", Vector2(-100000.0, -100000.0))
+	state = gameplay.call("get_camera_navigation_debug_state")
+	camera_position = state.get("camera_position", Vector2.ZERO)
+	clamp_bounds = state.get("clamp_bounds", Rect2())
+	if not _point_inside_rect(camera_position, clamp_bounds):
+		await _fail("Project validation failed: gameplay camera escaped negative clamp bounds: position=%s clamp=%s" % [str(camera_position), str(clamp_bounds)])
+		return false
 	return true
 
 func _validate_gameplay_layout_for_size(gameplay: Node2D, viewport_size: Vector2) -> bool:
@@ -371,6 +437,18 @@ func _rects_overlap(a: Rect2, b: Rect2) -> bool:
 	if a.size.x <= 0.0 or a.size.y <= 0.0 or b.size.x <= 0.0 or b.size.y <= 0.0:
 		return false
 	return a.intersects(b)
+
+func _rect_contains_rect(outer: Rect2, inner: Rect2) -> bool:
+	return inner.position.x >= outer.position.x - 0.5 \
+		and inner.position.y >= outer.position.y - 0.5 \
+		and inner.end.x <= outer.end.x + 0.5 \
+		and inner.end.y <= outer.end.y + 0.5
+
+func _point_inside_rect(point: Vector2, rect: Rect2) -> bool:
+	return point.x >= rect.position.x - 0.5 \
+		and point.y >= rect.position.y - 0.5 \
+		and point.x <= rect.end.x + 0.5 \
+		and point.y <= rect.end.y + 0.5
 
 func _room_rect_within_design_canvas(rect: Rect2) -> bool:
 	return rect.position.x >= -0.5 \
@@ -433,6 +511,13 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 			return {"ok": false}
 		if _curve_length(main_path.curve) <= 0.0:
 			print("Map ", map_id, ": MainPath curve has zero baked/control length.")
+			return {"ok": false}
+		if not map_root.has_method("get_map_bounds"):
+			print("Map ", map_id, ": missing get_map_bounds method for camera clamping.")
+			return {"ok": false}
+		var map_bounds: Rect2 = map_root.call("get_map_bounds")
+		if map_bounds.size.x <= 0.0 or map_bounds.size.y <= 0.0:
+			print("Map ", map_id, ": get_map_bounds returned invalid bounds: ", map_bounds)
 			return {"ok": false}
 
 		var ground_path_ids: PackedStringArray = map_def.get("ground_path_ids")

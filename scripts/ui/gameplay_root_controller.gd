@@ -35,6 +35,7 @@ signal core_depleted
 @onready var left_panel_content: Control = $UILayer/LeftPanel/VBoxContainer
 @onready var right_panel: Control = $UILayer/RightPanel
 @onready var right_panel_content: Control = $UILayer/RightPanel/VBoxContainer
+@onready var main_camera: Camera2D = $MainCamera
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
 @onready var defense_layer: Node2D = %DefenseLayer
@@ -67,6 +68,11 @@ const PANEL_INSET: float = 12.0
 const BOARD_TOP: float = 96.0
 const BOARD_BOTTOM_MARGIN: float = 32.0
 const BOARD_TOP_PADDING: float = 20.0
+const CAMERA_PAN_SPEED: float = 560.0
+const CAMERA_MIN_ZOOM: float = 0.75
+const CAMERA_MAX_ZOOM: float = 2.0
+const CAMERA_ZOOM_STEP: float = 1.12
+const CAMERA_CLAMP_VISIBLE_PADDING: float = 1.25
 
 func show_build_phase() -> void:
 	_is_wave_running = false
@@ -228,9 +234,28 @@ func _ready() -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport != null and not viewport.size_changed.is_connected(_on_viewport_size_changed):
 		viewport.size_changed.connect(_on_viewport_size_changed)
+	if main_camera != null:
+		main_camera.make_current()
 	_apply_gameplay_layout()
 	_center_camera()
 	_update_status_labels()
+
+func _process(delta: float) -> void:
+	_update_camera_pan(delta)
+
+func _unhandled_input(event: InputEvent) -> void:
+	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+	if mouse_event == null:
+		return
+	if not mouse_event.pressed:
+		return
+	if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_zoom_camera(CAMERA_ZOOM_STEP)
+		get_viewport().set_input_as_handled()
+		return
+	if mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_zoom_camera(1.0 / CAMERA_ZOOM_STEP)
+		get_viewport().set_input_as_handled()
 
 func _ensure_map_loaded() -> void:
 	if _map_instance != null and is_instance_valid(_map_instance):
@@ -261,12 +286,17 @@ func _ensure_map_loaded() -> void:
 	var main_path: Path2D = _map_instance.get_node_or_null("MainPath")
 	if main_path != null:
 		path_controller.register_path("main", main_path)
+	_reset_camera_to_map()
 
 func _center_camera() -> void:
-	var camera: Camera2D = get_node_or_null("MainCamera")
+	var camera: Camera2D = _get_camera()
 	if camera == null:
 		return
-	camera.position = _get_layout_viewport_size() * 0.5
+	if _map_instance != null and is_instance_valid(_map_instance):
+		camera.position = get_map_world_bounds().get_center()
+	else:
+		camera.position = _get_layout_viewport_size() * 0.5
+	_clamp_camera_to_bounds()
 
 func _on_wave_completed(_round_index: int) -> void:
 	_is_wave_running = false
@@ -419,7 +449,7 @@ func _apply_board_layout() -> void:
 
 func _on_viewport_size_changed() -> void:
 	_apply_gameplay_layout()
-	_center_camera()
+	_clamp_camera_to_bounds()
 
 func _apply_gameplay_layout() -> void:
 	if map_container == null:
@@ -490,6 +520,40 @@ func apply_gameplay_layout_for_debug(viewport_size: Vector2) -> void:
 	_apply_gameplay_layout()
 	_center_camera()
 
+func ensure_map_loaded_for_debug() -> bool:
+	_ensure_map_loaded()
+	return _map_instance != null and is_instance_valid(_map_instance)
+
+func get_map_world_bounds() -> Rect2:
+	if _map_instance == null or not is_instance_valid(_map_instance):
+		return Rect2(Vector2.ZERO, MAP_DESIGN_SIZE)
+	var local_bounds: Rect2 = _get_map_local_bounds()
+	return _transform_rect_to_global(_map_instance, local_bounds)
+
+func get_camera_navigation_debug_state() -> Dictionary:
+	var camera: Camera2D = _get_camera()
+	var current_zoom: float = camera.zoom.x if camera != null else 0.0
+	return {
+		"camera_exists": camera != null,
+		"camera_enabled": camera.enabled if camera != null else false,
+		"camera_position": camera.position if camera != null else Vector2.ZERO,
+		"current_zoom": current_zoom,
+		"min_zoom": CAMERA_MIN_ZOOM,
+		"max_zoom": CAMERA_MAX_ZOOM,
+		"map_world_bounds": get_map_world_bounds(),
+		"clamp_bounds": _get_camera_clamp_bounds(current_zoom if current_zoom > 0.0 else 1.0)
+	}
+
+func set_camera_zoom_for_debug(zoom_value: float) -> void:
+	_set_camera_zoom(zoom_value)
+
+func move_camera_for_debug(offset: Vector2) -> void:
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	camera.position += offset
+	_clamp_camera_to_bounds()
+
 func get_layout_debug_rects() -> Dictionary:
 	var map_rect: Rect2 = Rect2(map_container.position, MAP_DESIGN_SIZE * map_container.scale)
 	return {
@@ -510,6 +574,124 @@ func _control_global_rect(control: Control) -> Rect2:
 	if control == null:
 		return Rect2()
 	return control.get_global_rect()
+
+func _update_camera_pan(delta: float) -> void:
+	if not is_gameplay_presentation_visible():
+		return
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	var direction: Vector2 = Vector2.ZERO
+	if Input.is_key_pressed(KEY_A):
+		direction.x -= 1.0
+	if Input.is_key_pressed(KEY_D):
+		direction.x += 1.0
+	if Input.is_key_pressed(KEY_W):
+		direction.y -= 1.0
+	if Input.is_key_pressed(KEY_S):
+		direction.y += 1.0
+	if direction == Vector2.ZERO:
+		return
+	direction = direction.normalized()
+	camera.position += direction * (CAMERA_PAN_SPEED / maxf(camera.zoom.x, 0.001)) * delta
+	_clamp_camera_to_bounds()
+
+func _zoom_camera(multiplier: float) -> void:
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	_set_camera_zoom(camera.zoom.x * multiplier)
+
+func _set_camera_zoom(zoom_value: float) -> void:
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	var clamped_zoom: float = clampf(zoom_value, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM)
+	camera.zoom = Vector2(clamped_zoom, clamped_zoom)
+	_clamp_camera_to_bounds()
+
+func _reset_camera_to_map() -> void:
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	camera.zoom = Vector2.ONE
+	camera.position = get_map_world_bounds().get_center()
+	_clamp_camera_to_bounds()
+
+func _clamp_camera_to_bounds() -> void:
+	var camera: Camera2D = _get_camera()
+	if camera == null:
+		return
+	var zoom_value: float = maxf(camera.zoom.x, 0.001)
+	var visible_size: Vector2 = _get_layout_viewport_size() / zoom_value
+	var clamp_bounds: Rect2 = _get_camera_clamp_bounds(zoom_value)
+	var min_position: Vector2 = clamp_bounds.position + visible_size * 0.5
+	var max_position: Vector2 = clamp_bounds.end - visible_size * 0.5
+	var target_position: Vector2 = camera.position
+	if min_position.x > max_position.x:
+		target_position.x = clamp_bounds.get_center().x
+	else:
+		target_position.x = clampf(target_position.x, min_position.x, max_position.x)
+	if min_position.y > max_position.y:
+		target_position.y = clamp_bounds.get_center().y
+	else:
+		target_position.y = clampf(target_position.y, min_position.y, max_position.y)
+	camera.position = target_position
+
+func _get_camera_clamp_bounds(zoom_value: float) -> Rect2:
+	var map_bounds: Rect2 = get_map_world_bounds()
+	var visible_size: Vector2 = _get_layout_viewport_size() / maxf(zoom_value, 0.001)
+	var minimum_bounds_size: Vector2 = visible_size * CAMERA_CLAMP_VISIBLE_PADDING
+	var clamp_position: Vector2 = map_bounds.position
+	var clamp_size: Vector2 = map_bounds.size
+	if clamp_size.x < minimum_bounds_size.x:
+		clamp_position.x = map_bounds.get_center().x - minimum_bounds_size.x * 0.5
+		clamp_size.x = minimum_bounds_size.x
+	if clamp_size.y < minimum_bounds_size.y:
+		clamp_position.y = map_bounds.get_center().y - minimum_bounds_size.y * 0.5
+		clamp_size.y = minimum_bounds_size.y
+	return Rect2(clamp_position, clamp_size)
+
+func _get_map_local_bounds() -> Rect2:
+	if _map_instance == null or not is_instance_valid(_map_instance):
+		return Rect2(Vector2.ZERO, MAP_DESIGN_SIZE)
+	if _map_instance.has_method("get_map_bounds"):
+		var bounds: Rect2 = _map_instance.call("get_map_bounds")
+		if bounds.size.x > 0.0 and bounds.size.y > 0.0:
+			return bounds
+	var background: Polygon2D = _map_instance.get_node_or_null("Background") as Polygon2D
+	if background != null and background.polygon.size() >= 3:
+		return _points_rect(background.polygon)
+	return Rect2(Vector2.ZERO, MAP_DESIGN_SIZE)
+
+func _transform_rect_to_global(node: Node2D, rect: Rect2) -> Rect2:
+	var points: PackedVector2Array = PackedVector2Array([
+		rect.position,
+		Vector2(rect.end.x, rect.position.y),
+		rect.end,
+		Vector2(rect.position.x, rect.end.y)
+	])
+	var transformed: PackedVector2Array = PackedVector2Array()
+	for point: Vector2 in points:
+		transformed.append(node.to_global(point))
+	return _points_rect(transformed)
+
+func _points_rect(points: PackedVector2Array) -> Rect2:
+	if points.is_empty():
+		return Rect2()
+	var min_point: Vector2 = points[0]
+	var max_point: Vector2 = points[0]
+	for point: Vector2 in points:
+		min_point.x = minf(min_point.x, point.x)
+		min_point.y = minf(min_point.y, point.y)
+		max_point.x = maxf(max_point.x, point.x)
+		max_point.y = maxf(max_point.y, point.y)
+	return Rect2(min_point, max_point - min_point)
+
+func _get_camera() -> Camera2D:
+	if main_camera != null:
+		return main_camera
+	return get_node_or_null("MainCamera") as Camera2D
 
 func request_sell_selected_defense() -> void:
 	if _is_wave_running:
