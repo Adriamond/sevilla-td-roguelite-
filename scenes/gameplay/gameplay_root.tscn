@@ -49,7 +49,7 @@ offset_left = 24.0
 offset_top = 16.0
 offset_right = 1576.0
 offset_bottom = 60.0
-color = Color(0.06, 0.08, 0.12, 0.82)
+color = Color(0.035, 0.048, 0.075, 0.92)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UILayer/TopBar" unique_id=732172155]
 layout_mode = 0
@@ -62,40 +62,40 @@ theme_override_constants/separation = 18
 [node name="PhaseLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1018139049]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 text = "Build Phase"
 
 [node name="RoundLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=2106596058]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Round:"
 
 [node name="RoundValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=632945450]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "1"
 
 [node name="CoreHPLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1331540052]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Core HP:"
 
 [node name="CoreHPValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=2118976500]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "20"
 
 [node name="GoldLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=410913515]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Gold:"
 
 [node name="GoldValueLabel" type="Label" parent="UILayer/TopBar/HBoxContainer" unique_id=1850541731]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "0"
 
 [node name="LeftPanel" type="ColorRect" parent="UILayer" unique_id=576891703]
@@ -103,7 +103,7 @@ offset_left = 24.0
 offset_top = 72.0
 offset_right = 264.0
 offset_bottom = 856.0
-color = Color(0.06, 0.08, 0.12, 0.78)
+color = Color(0.035, 0.048, 0.075, 0.9)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/LeftPanel" unique_id=1130559878]
 layout_mode = 0
@@ -114,71 +114,71 @@ offset_bottom = 772.0
 
 [node name="BuildSelectionLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=730820844]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Build selected:"
 
 [node name="BuildSelectionValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=374138897]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "manguerazo"
 
 [node name="SelectManguerazoButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=956741799]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Build Manguerazo"
 
 [node name="SelectCablePelaoButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=647654175]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Build Cable Pelao"
 
 [node name="PhaseActionButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=887216138]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Start Wave"
 
 [node name="ForceCompleteButton" type="Button" parent="UILayer/LeftPanel/VBoxContainer" unique_id=960445157]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "[DEBUG] Force Complete"
 
 [node name="ActiveEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=787642378]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Active enemies:"
 
 [node name="ActiveEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1124616895]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="SpawnedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1086578199]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Spawned:"
 
 [node name="SpawnedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=465605060]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="LeakedEnemiesLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1181849406]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Leaked:"
 
 [node name="LeakedEnemiesValueLabel" type="Label" parent="UILayer/LeftPanel/VBoxContainer" unique_id=1923425324]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="RightPanel" type="ColorRect" parent="UILayer" unique_id=982006059]
@@ -186,7 +186,7 @@ offset_left = 1316.0
 offset_top = 72.0
 offset_right = 1576.0
 offset_bottom = 856.0
-color = Color(0.06, 0.08, 0.12, 0.78)
+color = Color(0.035, 0.048, 0.075, 0.9)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel" unique_id=491644591]
 layout_mode = 0
@@ -198,98 +198,98 @@ offset_bottom = 772.0
 [node name="BuildHintLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1130229477]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 14
 text = "Click pad to build manguerazo"
 autowrap_mode = 3
 
 [node name="SelectedDefenseLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1796122712]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Selected:"
 
 [node name="SelectedDefenseValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=117633442]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "None"
 
 [node name="SelectedLevelLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1918867046]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Level:"
 
 [node name="SelectedLevelValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1017470211]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "-"
 
 [node name="SelectedDamageLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=273577213]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Damage:"
 
 [node name="SelectedDamageValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1240645151]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="SelectedRangeLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=338674105]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Range:"
 
 [node name="SelectedRangeValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=2001283376]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="SelectedFireRateLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=46848875]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Fire rate:"
 
 [node name="SelectedFireRateValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=217084656]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="UpgradeCostLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1747530410]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Upgrade cost:"
 
 [node name="UpgradeCostValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1738128520]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="SellRefundLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1941177800]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "Sell refund:"
 
 [node name="SellRefundValueLabel" type="Label" parent="UILayer/RightPanel/VBoxContainer" unique_id=1511315412]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 text = "0"
 
 [node name="UpgradeDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer" unique_id=649487395]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 disabled = true
 text = "Upgrade (+45)"
 
 [node name="SellDefenseButton" type="Button" parent="UILayer/RightPanel/VBoxContainer" unique_id=1182384238]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 15
 disabled = true
 text = "Sell Selected"
 

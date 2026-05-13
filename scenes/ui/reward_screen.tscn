@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.07, 0.1, 0.9)
+color = Color(0.025, 0.035, 0.055, 0.95)
 
 [node name="RootMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -43,13 +43,13 @@ theme_override_constants/separation = 18
 [node name="TitleLabel" type="Label" parent="RootMargin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 34
 text = "Elige tu recompensa"
 horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="RootMargin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 17
 text = "Escoge una carta y seguimos la run."
 horizontal_alignment = 1
 
@@ -64,7 +64,7 @@ custom_minimum_size = Vector2(0, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "reward_1"
 autowrap_mode = 3
 alignment = 0
@@ -76,7 +76,7 @@ custom_minimum_size = Vector2(0, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "reward_2"
 autowrap_mode = 3
 alignment = 0
@@ -88,7 +88,7 @@ custom_minimum_size = Vector2(0, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "reward_3"
 autowrap_mode = 3
 alignment = 0

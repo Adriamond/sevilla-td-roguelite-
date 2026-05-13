@@ -2460,3 +2460,47 @@ Acceptance criteria:
 - Reward screen remains screen-space and fully visible.
 - Validation suite passes.
 - Manual Play/F5 is still required for acceptance before any merge.
+
+## CR-EXPERIMENT-READABILITY-PASS - Experimental UI text readability pass
+
+Status: implemented on experimental branch
+Date: 2026-05-14
+
+Requester intent:
+
+Improve text/UI readability in the current large-map experimental build without adding gameplay features, changing systems, or treating large CRs as the normal workflow.
+
+Affected areas:
+
+- UI: gameplay HUD text sizes and panel contrast
+- UI: reward card/title text sizes and backdrop contrast
+- UI: room hub labels/buttons and panel contrast
+- Project settings: none
+- Gameplay mechanics: none
+- Balance: none
+
+Decision:
+
+Keep the existing 1600x900 viewport and stretch settings unchanged, and improve readability with small reversible scene-level typography and contrast adjustments instead of adding fonts or redesigning UI.
+
+Implementation notes:
+
+- Work was performed on `experiment/large-cr-test` only.
+- Godot AI MCP read-only inspection was attempted first, but direct JSON-RPC initialize failed in this session; no MCP write actions or editor saves were used.
+- Increased small gameplay HUD label/button font sizes and made HUD panels more opaque for better contrast over the large map.
+- Increased reward screen title/card text sizes and darkened the reward backdrop slightly.
+- Increased room hub hotspot, interaction and message text sizes and improved panel opacity.
+- No `project.godot` stretch/window settings were changed.
+- No external fonts, addons, gameplay logic, map geometry, pad placement, camera clamp, rewards, tower stats, enemy/wave logic or room interaction effects were changed.
+
+Risks:
+
+- Larger text can still need manual Play/F5 review for subjective readability and line wrapping, especially on the room interaction buttons.
+- This is an experimental branch pass and should not be merged without manual review.
+
+Acceptance criteria:
+
+- Automated validation passes.
+- Gameplay HUD, reward cards and room text are larger/higher contrast than before.
+- No project/stretch settings or gameplay mechanics changed.
+- Manual Play/F5 readability review remains required before merge.
