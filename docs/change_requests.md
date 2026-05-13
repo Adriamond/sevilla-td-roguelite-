@@ -2415,3 +2415,48 @@ Acceptance criteria:
 - START/END areas and build pads remain readable.
 - Existing map contract and gameplay validations pass.
 - Manual Play/F5 is still required for acceptance.
+
+## CR-EXPERIMENT-BIGMAP-PLAYABILITY-FIX - Large-map pad, camera safe-area and reward overlay fixes
+
+Status: implemented on experimental branch
+Date: 2026-05-14
+
+Requester intent:
+
+Fix manual playability issues found after the large-map corridor polish experiment while preserving mechanics and keeping the work isolated on `experiment/large-cr-test`.
+
+Affected areas:
+
+- Scene: Pino Montano build pad placement and corridor visual width
+- Code: gameplay camera safe-area clamping and overlay layering
+- Validation: pad-to-path usefulness, reward viewport fit, camera safe-area checks
+- Docs: CR tracking update
+- Balance: none
+
+Decision:
+
+Keep tower stats unchanged and solve early playability through geometry: a still-readable but narrower corridor visual plus pad positions near meaningful path bends and segments. Treat gameplay camera clamping as a central playfield problem rather than a full-window problem, because HUD panels occupy fixed screen space.
+
+Implementation notes:
+
+- Work was performed on `experiment/large-cr-test` only.
+- Godot AI MCP read-only inspection was attempted first; port 8000 was reachable, but direct JSON-RPC initialize failed in this session, so no MCP write actions or editor saves were used.
+- Repositioned existing pads around the large corridor so each pad is close enough to the `MainPath` centerline for current tower ranges.
+- Reduced `CorridorVisual` from 136px to 92px wide and `CorridorShadowVisual` from 174px to 126px so pads can sit near the corridor without requiring tower range/balance changes.
+- `GameplayRootController` camera clamp now uses the central gameplay safe screen rect between HUD panels/top bar instead of the full viewport.
+- `BootController` now hosts overlay screens inside a high-layer `CanvasLayer`, keeping reward/room overlays in screen space and independent from gameplay camera pan/zoom.
+- `validate_project.gd` now checks reward screen key nodes fit inside 1600x900, build pads are not too far from the path centerline, and camera safe-world rect remains clamped.
+- No tower stats/ranges, defenses, enemies, rewards, RoomHub effects, pathfinding, walls, minimap, or broad architecture rewrites were added.
+
+Risks:
+
+- Camera safe-area clamping is deterministic, but final usability still needs manual Play/F5 testing at the actual editor/game window size.
+- The corridor remains visual-only; future wall/path-zone gameplay should be handled in a separate staged CR.
+
+Acceptance criteria:
+
+- Pad placement is more practical for current manguerazo/cable_pelao ranges without changing tower balance.
+- Camera clamping respects the central gameplay area so important map content is not functionally trapped behind HUD panels.
+- Reward screen remains screen-space and fully visible.
+- Validation suite passes.
+- Manual Play/F5 is still required for acceptance before any merge.

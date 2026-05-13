@@ -46,7 +46,7 @@ curve = SubResource("Curve2D_main")
 [node name="CorridorShadowVisual" type="Line2D" parent="."]
 z_index = 1
 default_color = Color(0.1, 0.075, 0.045, 0.92)
-width = 174.0
+width = 126.0
 joint_mode = 1
 begin_cap_mode = 2
 end_cap_mode = 2
@@ -55,7 +55,7 @@ points = PackedVector2Array(160, 1260, 520, 1260, 520, 1000, 1020, 1000, 1020, 7
 [node name="CorridorVisual" type="Line2D" parent="."]
 z_index = 2
 default_color = Color(0.42, 0.33, 0.18, 0.98)
-width = 136.0
+width = 92.0
 joint_mode = 1
 begin_cap_mode = 2
 end_cap_mode = 2
@@ -116,7 +116,7 @@ theme_override_font_sizes/font_size = 18
 z_index = 8
 
 [node name="Pad01" type="Area2D" parent="BuildPads"]
-position = Vector2(360, 1198)
+position = Vector2(330, 1198)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_01"
@@ -129,7 +129,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad02" type="Area2D" parent="BuildPads"]
-position = Vector2(590, 1128)
+position = Vector2(570, 1128)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_02"
@@ -142,7 +142,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad03" type="Area2D" parent="BuildPads"]
-position = Vector2(430, 1018)
+position = Vector2(470, 1000)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_03"
@@ -155,7 +155,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad04" type="Area2D" parent="BuildPads"]
-position = Vector2(845, 948)
+position = Vector2(845, 950)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_04"
@@ -168,7 +168,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad05" type="Area2D" parent="BuildPads"]
-position = Vector2(1090, 858)
+position = Vector2(1070, 858)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_05"
@@ -181,7 +181,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad06" type="Area2D" parent="BuildPads"]
-position = Vector2(900, 705)
+position = Vector2(900, 710)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_06"
@@ -194,7 +194,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad07" type="Area2D" parent="BuildPads"]
-position = Vector2(555, 620)
+position = Vector2(670, 688)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_07"
@@ -207,7 +207,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad08" type="Area2D" parent="BuildPads"]
-position = Vector2(1000, 558)
+position = Vector2(570, 500)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_08"
@@ -220,7 +220,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad09" type="Area2D" parent="BuildPads"]
-position = Vector2(1338, 430)
+position = Vector2(1100, 550)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_09"
@@ -233,7 +233,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad10" type="Area2D" parent="BuildPads"]
-position = Vector2(1505, 330)
+position = Vector2(1470, 420)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_10"
@@ -246,7 +246,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad11" type="Area2D" parent="BuildPads"]
-position = Vector2(1880, 198)
+position = Vector2(1880, 210)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_11"
@@ -259,7 +259,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad12" type="Area2D" parent="BuildPads"]
-position = Vector2(2262, 420)
+position = Vector2(2250, 332)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_12"
@@ -272,7 +272,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad13" type="Area2D" parent="BuildPads"]
-position = Vector2(2135, 712)
+position = Vector2(2270, 700)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_13"
@@ -285,7 +285,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad14" type="Area2D" parent="BuildPads"]
-position = Vector2(2510, 602)
+position = Vector2(2510, 600)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_14"
@@ -298,7 +298,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad15" type="Area2D" parent="BuildPads"]
-position = Vector2(2885, 502)
+position = Vector2(2870, 650)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_15"
@@ -311,7 +311,7 @@ color = Color(0.23, 0.68, 0.96, 0.84)
 polygon = PackedVector2Array(-17, -17, 17, -17, 17, 17, -17, 17)
 
 [node name="Pad16" type="Area2D" parent="BuildPads"]
-position = Vector2(2742, 260)
+position = Vector2(2770, 250)
 script = ExtResource("2")
 pad_category = "ground"
 pad_id = "pad_16"

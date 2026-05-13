@@ -16,7 +16,8 @@ const SCENE_SPECS: Array[Dictionary] = [
 const LARGE_MAP_MIN_SIZE: Vector2 = Vector2(2500.0, 1200.0)
 const LARGE_MAP_MIN_PATH_LENGTH: float = 3500.0
 const PATH_VISUAL_LENGTH_TOLERANCE: float = 0.08
-const CORRIDOR_VISUAL_MIN_WIDTH: float = 100.0
+const CORRIDOR_VISUAL_MIN_WIDTH: float = 88.0
+const PAD_MAX_CENTERLINE_DISTANCE: float = 86.0
 
 var _created_nodes: Array[Node] = []
 
@@ -37,6 +38,7 @@ func _run_validation() -> void:
 	if content_db == null:
 		await _fail("Project validation failed: could not instantiate ContentDB.")
 		return
+	content_db.name = "ContentDB"
 	_track_node(content_db)
 	content_db.call("load_all")
 
@@ -76,6 +78,8 @@ func _run_validation() -> void:
 		instance.free()
 
 	if not await _validate_room_hub_viewport_fit():
+		return
+	if not await _validate_reward_screen_viewport_fit():
 		return
 	if not await _validate_gameplay_layout_contract():
 		return
@@ -295,6 +299,46 @@ func _validate_room_hub_viewport_fit() -> bool:
 	await process_frame
 	return true
 
+func _validate_reward_screen_viewport_fit() -> bool:
+	root.size = Vector2i(1600, 900)
+	var reward_scene: PackedScene = load("res://scenes/ui/reward_screen.tscn")
+	if reward_scene == null:
+		await _fail("Project validation failed: reward_screen scene could not load for viewport-fit check.")
+		return false
+	var reward_screen: Control = reward_scene.instantiate() as Control
+	if reward_screen == null:
+		await _fail("Project validation failed: reward_screen did not instantiate as Control for viewport-fit check.")
+		return false
+	_track_node(reward_screen)
+	await process_frame
+	if reward_screen.has_method("show_rewards"):
+		var reward_ids: Array[String] = ["litrito", "media_bellota", "rasta"]
+		reward_screen.call("show_rewards", reward_ids)
+	await process_frame
+	var viewport_rect: Rect2 = Rect2(Vector2.ZERO, root.size)
+	var root_rect: Rect2 = reward_screen.get_global_rect()
+	if not _rect_within(root_rect, viewport_rect):
+		await _fail("Project validation failed: RewardScreen root is outside viewport: root=%s viewport=%s" % [str(root_rect), str(viewport_rect)])
+		return false
+	var required_nodes: Array[String] = [
+		"RootMargin",
+		"CardsRow",
+		"RewardButton1",
+		"RewardButton2",
+		"RewardButton3"
+	]
+	for node_name: String in required_nodes:
+		var ui_node: Control = reward_screen.find_child(node_name, true, false) as Control
+		if ui_node == null:
+			await _fail("Project validation failed: RewardScreen missing required UI node for bounds check: %s" % node_name)
+			return false
+		if not _rect_within(ui_node.get_global_rect(), viewport_rect):
+			await _fail("Project validation failed: RewardScreen node %s is outside 1600x900 bounds: %s" % [node_name, str(ui_node.get_global_rect())])
+			return false
+	reward_screen.queue_free()
+	await process_frame
+	return true
+
 func _validate_gameplay_layout_contract() -> bool:
 	root.size = Vector2i(1600, 900)
 	var gameplay_scene: PackedScene = load("res://scenes/gameplay/gameplay_root.tscn")
@@ -361,6 +405,15 @@ func _validate_gameplay_camera_navigation(gameplay: Node2D) -> bool:
 	if not _rect_contains_rect(clamp_bounds, map_bounds):
 		await _fail("Project validation failed: gameplay camera clamp bounds should contain map bounds: clamp=%s map=%s" % [str(clamp_bounds), str(map_bounds)])
 		return false
+	var safe_screen_rect: Rect2 = state.get("safe_screen_rect", Rect2())
+	var viewport_rect: Rect2 = Rect2(Vector2.ZERO, Vector2(1600.0, 900.0))
+	if safe_screen_rect.size.x <= 0.0 or safe_screen_rect.size.y <= 0.0 or not _rect_within(safe_screen_rect, viewport_rect):
+		await _fail("Project validation failed: gameplay camera safe screen rect is invalid: %s" % str(safe_screen_rect))
+		return false
+	var safe_world_rect: Rect2 = state.get("safe_world_rect", Rect2())
+	if safe_world_rect.size.x <= 0.0 or safe_world_rect.size.y <= 0.0:
+		await _fail("Project validation failed: gameplay camera safe world rect is invalid: %s" % str(safe_world_rect))
+		return false
 
 	gameplay.call("set_camera_zoom_for_debug", max_zoom * 10.0)
 	state = gameplay.call("get_camera_navigation_debug_state")
@@ -375,17 +428,17 @@ func _validate_gameplay_camera_navigation(gameplay: Node2D) -> bool:
 
 	gameplay.call("move_camera_for_debug", Vector2(100000.0, 100000.0))
 	state = gameplay.call("get_camera_navigation_debug_state")
-	var camera_position: Vector2 = state.get("camera_position", Vector2.ZERO)
 	clamp_bounds = state.get("clamp_bounds", Rect2())
-	if not _point_inside_rect(camera_position, clamp_bounds):
-		await _fail("Project validation failed: gameplay camera escaped positive clamp bounds: position=%s clamp=%s" % [str(camera_position), str(clamp_bounds)])
+	safe_world_rect = state.get("safe_world_rect", Rect2())
+	if not _rect_contains_rect(clamp_bounds, safe_world_rect):
+		await _fail("Project validation failed: gameplay camera safe area escaped positive clamp bounds: safe=%s clamp=%s" % [str(safe_world_rect), str(clamp_bounds)])
 		return false
 	gameplay.call("move_camera_for_debug", Vector2(-100000.0, -100000.0))
 	state = gameplay.call("get_camera_navigation_debug_state")
-	camera_position = state.get("camera_position", Vector2.ZERO)
 	clamp_bounds = state.get("clamp_bounds", Rect2())
-	if not _point_inside_rect(camera_position, clamp_bounds):
-		await _fail("Project validation failed: gameplay camera escaped negative clamp bounds: position=%s clamp=%s" % [str(camera_position), str(clamp_bounds)])
+	safe_world_rect = state.get("safe_world_rect", Rect2())
+	if not _rect_contains_rect(clamp_bounds, safe_world_rect):
+		await _fail("Project validation failed: gameplay camera safe area escaped negative clamp bounds: safe=%s clamp=%s" % [str(safe_world_rect), str(clamp_bounds)])
 		return false
 	return true
 
@@ -612,6 +665,10 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 			if not _point_inside_rect(pad_position, map_bounds):
 				print("Map ", map_id, ": build pad ", pad_identifier, " is outside map bounds: ", pad_position)
 				return {"ok": false}
+			var distance_to_path: float = _distance_to_polyline(pad_position, curve_points)
+			if distance_to_path > PAD_MAX_CENTERLINE_DISTANCE:
+				print("Map ", map_id, ": build pad ", pad_identifier, " is too far from MainPath for current tower ranges: distance=", distance_to_path)
+				return {"ok": false}
 
 		var path_visual: Line2D = map_root.get_node_or_null("PathVisual")
 		if path_visual != null and path_visual.points.size() >= 2:
@@ -699,6 +756,24 @@ func _polyline_length(points: PackedVector2Array) -> float:
 	for i: int in range(points.size() - 1):
 		total += points[i].distance_to(points[i + 1])
 	return total
+
+func _distance_to_polyline(point: Vector2, points: PackedVector2Array) -> float:
+	if points.is_empty():
+		return INF
+	if points.size() == 1:
+		return point.distance_to(points[0])
+	var closest_distance: float = INF
+	for i: int in range(points.size() - 1):
+		closest_distance = minf(closest_distance, _distance_to_segment(point, points[i], points[i + 1]))
+	return closest_distance
+
+func _distance_to_segment(point: Vector2, from_point: Vector2, to_point: Vector2) -> float:
+	var segment: Vector2 = to_point - from_point
+	var segment_length_squared: float = segment.length_squared()
+	if segment_length_squared <= 0.0001:
+		return point.distance_to(from_point)
+	var t: float = clampf((point - from_point).dot(segment) / segment_length_squared, 0.0, 1.0)
+	return point.distance_to(from_point + segment * t)
 
 func _validate_global_controller_scripts() -> bool:
 	var required_scripts: Array[String] = [

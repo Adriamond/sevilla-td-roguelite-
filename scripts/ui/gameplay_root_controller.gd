@@ -533,6 +533,7 @@ func get_map_world_bounds() -> Rect2:
 func get_camera_navigation_debug_state() -> Dictionary:
 	var camera: Camera2D = _get_camera()
 	var current_zoom: float = camera.zoom.x if camera != null else 0.0
+	var safe_screen_rect: Rect2 = _get_gameplay_safe_screen_rect()
 	return {
 		"camera_exists": camera != null,
 		"camera_enabled": camera.enabled if camera != null else false,
@@ -541,7 +542,9 @@ func get_camera_navigation_debug_state() -> Dictionary:
 		"min_zoom": CAMERA_MIN_ZOOM,
 		"max_zoom": CAMERA_MAX_ZOOM,
 		"map_world_bounds": get_map_world_bounds(),
-		"clamp_bounds": _get_camera_clamp_bounds(current_zoom if current_zoom > 0.0 else 1.0)
+		"clamp_bounds": _get_camera_clamp_bounds(current_zoom if current_zoom > 0.0 else 1.0),
+		"safe_screen_rect": safe_screen_rect,
+		"safe_world_rect": _get_camera_safe_world_rect(camera.position if camera != null else Vector2.ZERO, current_zoom if current_zoom > 0.0 else 1.0, safe_screen_rect)
 	}
 
 func set_camera_zoom_for_debug(zoom_value: float) -> void:
@@ -630,24 +633,26 @@ func _clamp_camera_to_bounds() -> void:
 	if camera == null:
 		return
 	var zoom_value: float = maxf(camera.zoom.x, 0.001)
-	var visible_size: Vector2 = _get_layout_viewport_size() / zoom_value
+	var safe_screen_rect: Rect2 = _get_gameplay_safe_screen_rect()
+	var visible_size: Vector2 = safe_screen_rect.size / zoom_value
+	var safe_center_offset: Vector2 = (safe_screen_rect.get_center() - _get_layout_viewport_size() * 0.5) / zoom_value
 	var clamp_bounds: Rect2 = _get_camera_clamp_bounds(zoom_value)
 	var min_position: Vector2 = clamp_bounds.position + visible_size * 0.5
 	var max_position: Vector2 = clamp_bounds.end - visible_size * 0.5
-	var target_position: Vector2 = camera.position
+	var target_safe_center: Vector2 = camera.position + safe_center_offset
 	if min_position.x > max_position.x:
-		target_position.x = clamp_bounds.get_center().x
+		target_safe_center.x = clamp_bounds.get_center().x
 	else:
-		target_position.x = clampf(target_position.x, min_position.x, max_position.x)
+		target_safe_center.x = clampf(target_safe_center.x, min_position.x, max_position.x)
 	if min_position.y > max_position.y:
-		target_position.y = clamp_bounds.get_center().y
+		target_safe_center.y = clamp_bounds.get_center().y
 	else:
-		target_position.y = clampf(target_position.y, min_position.y, max_position.y)
-	camera.position = target_position
+		target_safe_center.y = clampf(target_safe_center.y, min_position.y, max_position.y)
+	camera.position = target_safe_center - safe_center_offset
 
 func _get_camera_clamp_bounds(zoom_value: float) -> Rect2:
 	var map_bounds: Rect2 = get_map_world_bounds()
-	var visible_size: Vector2 = _get_layout_viewport_size() / maxf(zoom_value, 0.001)
+	var visible_size: Vector2 = _get_gameplay_safe_screen_rect().size / maxf(zoom_value, 0.001)
 	var minimum_bounds_size: Vector2 = visible_size * CAMERA_CLAMP_VISIBLE_PADDING
 	var clamp_position: Vector2 = map_bounds.position
 	var clamp_size: Vector2 = map_bounds.size
@@ -658,6 +663,32 @@ func _get_camera_clamp_bounds(zoom_value: float) -> Rect2:
 		clamp_position.y = map_bounds.get_center().y - minimum_bounds_size.y * 0.5
 		clamp_size.y = minimum_bounds_size.y
 	return Rect2(clamp_position, clamp_size)
+
+func _get_gameplay_safe_screen_rect() -> Rect2:
+	var viewport_size: Vector2 = _get_layout_viewport_size()
+	var left_rect: Rect2 = _control_global_rect(left_panel)
+	var right_rect: Rect2 = _control_global_rect(right_panel)
+	var top_rect: Rect2 = _control_global_rect(top_bar)
+	var safe_left: float = OUTER_MARGIN
+	if left_rect.size.x > 0.0:
+		safe_left = left_rect.end.x + PANEL_GAP
+	var safe_right: float = viewport_size.x - OUTER_MARGIN
+	if right_rect.size.x > 0.0:
+		safe_right = right_rect.position.x - PANEL_GAP
+	var safe_top: float = BOARD_TOP
+	if top_rect.size.y > 0.0:
+		safe_top = maxf(BOARD_TOP, top_rect.end.y + PANEL_GAP)
+	var safe_bottom: float = viewport_size.y - BOARD_BOTTOM_MARGIN
+	return Rect2(
+		Vector2(safe_left, safe_top),
+		Vector2(maxf(1.0, safe_right - safe_left), maxf(1.0, safe_bottom - safe_top))
+	)
+
+func _get_camera_safe_world_rect(camera_position: Vector2, zoom_value: float, safe_screen_rect: Rect2) -> Rect2:
+	var viewport_center: Vector2 = _get_layout_viewport_size() * 0.5
+	var world_position: Vector2 = camera_position + (safe_screen_rect.position - viewport_center) / maxf(zoom_value, 0.001)
+	var world_size: Vector2 = safe_screen_rect.size / maxf(zoom_value, 0.001)
+	return Rect2(world_position, world_size)
 
 func _get_map_local_bounds() -> Rect2:
 	if _map_instance == null or not is_instance_valid(_map_instance):

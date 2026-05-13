@@ -15,6 +15,7 @@ var _run_controller: RunController
 var _active_screen: Node = null
 var _gameplay_screen: GameplayRootController = null
 var _overlay_screen: Node = null
+var _overlay_layer: CanvasLayer = null
 
 func _ready() -> void:
 	_run_controller = RunController.new()
@@ -182,13 +183,19 @@ func _get_or_create_gameplay_screen() -> GameplayRootController:
 
 func _show_overlay(scene: PackedScene) -> Node:
 	_clear_overlay()
+	_overlay_layer = CanvasLayer.new()
+	_overlay_layer.layer = 50
+	add_child(_overlay_layer)
 	_overlay_screen = scene.instantiate()
-	add_child(_overlay_screen)
+	_overlay_layer.add_child(_overlay_screen)
 	return _overlay_screen
 
 func _clear_overlay() -> void:
-	if _overlay_screen != null and is_instance_valid(_overlay_screen):
+	if _overlay_layer != null and is_instance_valid(_overlay_layer):
+		_overlay_layer.queue_free()
+	elif _overlay_screen != null and is_instance_valid(_overlay_screen):
 		_overlay_screen.queue_free()
+	_overlay_layer = null
 	_overlay_screen = null
 
 func _set_gameplay_visible(value: bool) -> void:
