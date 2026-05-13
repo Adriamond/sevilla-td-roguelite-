@@ -2372,3 +2372,46 @@ Acceptance criteria:
 - `MainPath`, `PathVisual`, START/END markers, and build pads are consistent and validated.
 - Existing build/select/sell/upgrade and wave flow remain unchanged.
 - Validation suite passes.
+
+## CR-EXPERIMENT-BIGMAP-POLISH - Large-map corridor readability polish experiment
+
+Status: implemented on experimental branch
+Date: 2026-05-14
+
+Requester intent:
+
+Evaluate whether Codex can safely handle a larger controlled CR by improving the large Pino Montano map presentation without changing gameplay mechanics or treating large CRs as the normal workflow.
+
+Affected areas:
+
+- Scene: large Pino Montano map visual hierarchy only
+- Validation: corridor visual contract checks
+- Docs: CR tracking update
+- Gameplay mechanics: none
+- Balance: none
+
+Decision:
+
+Keep `MainPath` as the authoritative enemy movement centerline and add separate wide corridor visuals around it so the larger map reads more like a traversable board without introducing pathfinding, walls, or movement changes.
+
+Implementation notes:
+
+- Work was performed on `experiment/large-cr-test` only.
+- Godot AI MCP read-only inspection was attempted first; port 8000 was reachable, but direct JSON-RPC initialize failed in this session, so no MCP write actions or editor saves were used.
+- Added `CorridorShadowVisual` and `CorridorVisual` `Line2D` nodes that match `MainPath`/`PathVisual` points but render as a wide corridor under the centerline.
+- Added simple background blockout zones plus clearer START/END zones to improve large-map readability.
+- Raised build pad layer ordering so pads remain visually prominent above the corridor.
+- `validate_project.gd` now requires `CorridorVisual`, checks its width is meaningful, and ensures its endpoints/length stay aligned with `MainPath`.
+- No defenses, enemies, rewards, RoomHub behavior, balance, pathfinding, walls, minimap, or architecture rewrites were added.
+
+Risks:
+
+- This is an experimental larger CR and requires manual Play/F5 review before considering any merge.
+- The corridor is visual only; future wall/path-zone gameplay will need a separate staged design.
+
+Acceptance criteria:
+
+- Wide corridor visual exists and remains aligned with the authoritative path.
+- START/END areas and build pads remain readable.
+- Existing map contract and gameplay validations pass.
+- Manual Play/F5 is still required for acceptance.

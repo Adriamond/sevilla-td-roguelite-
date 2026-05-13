@@ -16,6 +16,7 @@ const SCENE_SPECS: Array[Dictionary] = [
 const LARGE_MAP_MIN_SIZE: Vector2 = Vector2(2500.0, 1200.0)
 const LARGE_MAP_MIN_PATH_LENGTH: float = 3500.0
 const PATH_VISUAL_LENGTH_TOLERANCE: float = 0.08
+const CORRIDOR_VISUAL_MIN_WIDTH: float = 100.0
 
 var _created_nodes: Array[Node] = []
 
@@ -628,6 +629,31 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 			if path_visual.points[path_visual.points.size() - 1].distance_to(curve_points[curve_points.size() - 1]) > 1.0:
 				print("Map ", map_id, ": PathVisual end does not match MainPath end.")
 				return {"ok": false}
+
+		var corridor_visual: Line2D = map_root.get_node_or_null("CorridorVisual")
+		if corridor_visual == null:
+			print("Map ", map_id, ": missing CorridorVisual for readable large-map path corridor.")
+			return {"ok": false}
+		if corridor_visual.width < CORRIDOR_VISUAL_MIN_WIDTH:
+			print("Map ", map_id, ": CorridorVisual width is too small for corridor readability: ", corridor_visual.width)
+			return {"ok": false}
+		if corridor_visual.points.size() < 2:
+			print("Map ", map_id, ": CorridorVisual must have at least two points.")
+			return {"ok": false}
+		var corridor_length: float = _polyline_length(corridor_visual.points)
+		if corridor_length <= 0.0:
+			print("Map ", map_id, ": CorridorVisual has zero length.")
+			return {"ok": false}
+		var corridor_delta: float = absf(corridor_length - path_length) / maxf(path_length, 0.001)
+		if corridor_delta > PATH_VISUAL_LENGTH_TOLERANCE:
+			print("Map ", map_id, ": CorridorVisual length does not match MainPath length closely enough: corridor=", corridor_length, " path=", path_length)
+			return {"ok": false}
+		if corridor_visual.points[0].distance_to(curve_points[0]) > 1.0:
+			print("Map ", map_id, ": CorridorVisual start does not match MainPath start.")
+			return {"ok": false}
+		if corridor_visual.points[corridor_visual.points.size() - 1].distance_to(curve_points[curve_points.size() - 1]) > 1.0:
+			print("Map ", map_id, ": CorridorVisual end does not match MainPath end.")
+			return {"ok": false}
 
 		if first_valid_map_scene == null:
 			first_valid_map_scene = map_scene
