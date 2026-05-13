@@ -29,6 +29,12 @@ signal core_depleted
 @onready var sell_refund_label: Label = %SellRefundValueLabel
 @onready var upgrade_button: Button = %UpgradeDefenseButton
 @onready var sell_button: Button = %SellDefenseButton
+@onready var top_bar: Control = $UILayer/TopBar
+@onready var top_bar_content: Control = $UILayer/TopBar/HBoxContainer
+@onready var left_panel: Control = $UILayer/LeftPanel
+@onready var left_panel_content: Control = $UILayer/LeftPanel/VBoxContainer
+@onready var right_panel: Control = $UILayer/RightPanel
+@onready var right_panel_content: Control = $UILayer/RightPanel/VBoxContainer
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
 @onready var defense_layer: Node2D = %DefenseLayer
@@ -46,8 +52,21 @@ var _spawned_count: int = 0
 var _leaked_count: int = 0
 var _build_defense_id: String = "manguerazo"
 var _core_depleted_emitted: bool = false
-const BOARD_ORIGIN: Vector2 = Vector2(236.0, 78.0)
-const BOARD_SCALE: Vector2 = Vector2(0.88, 0.88)
+var _layout_viewport_override: Vector2 = Vector2.ZERO
+const DESIGN_VIEWPORT_SIZE: Vector2 = Vector2(1600.0, 900.0)
+const MAP_DESIGN_SIZE: Vector2 = Vector2(960.0, 540.0)
+const OUTER_MARGIN: float = 24.0
+const PANEL_GAP: float = 24.0
+const TOP_BAR_Y: float = 16.0
+const TOP_BAR_HEIGHT: float = 44.0
+const SIDE_PANEL_Y: float = 72.0
+const SIDE_PANEL_BOTTOM_MARGIN: float = 44.0
+const LEFT_PANEL_WIDTH: float = 240.0
+const RIGHT_PANEL_WIDTH: float = 260.0
+const PANEL_INSET: float = 12.0
+const BOARD_TOP: float = 96.0
+const BOARD_BOTTOM_MARGIN: float = 32.0
+const BOARD_TOP_PADDING: float = 20.0
 
 func show_build_phase() -> void:
 	_is_wave_running = false
@@ -206,7 +225,10 @@ func _ready() -> void:
 	run_state.gold_changed.connect(_on_run_gold_changed)
 	run_state.core_hp_changed.connect(_on_run_core_hp_changed)
 	run_state.round_changed.connect(_on_run_round_changed)
-	_apply_board_layout()
+	var viewport: Viewport = get_viewport()
+	if viewport != null and not viewport.size_changed.is_connected(_on_viewport_size_changed):
+		viewport.size_changed.connect(_on_viewport_size_changed)
+	_apply_gameplay_layout()
 	_center_camera()
 	_update_status_labels()
 
@@ -244,7 +266,7 @@ func _center_camera() -> void:
 	var camera: Camera2D = get_node_or_null("MainCamera")
 	if camera == null:
 		return
-	camera.position = Vector2(640, 360)
+	camera.position = _get_layout_viewport_size() * 0.5
 
 func _on_wave_completed(_round_index: int) -> void:
 	_is_wave_running = false
@@ -393,10 +415,101 @@ func get_phase_name() -> String:
 	return _phase_name
 
 func _apply_board_layout() -> void:
+	_apply_gameplay_layout()
+
+func _on_viewport_size_changed() -> void:
+	_apply_gameplay_layout()
+	_center_camera()
+
+func _apply_gameplay_layout() -> void:
 	if map_container == null:
 		return
-	map_container.position = BOARD_ORIGIN
-	map_container.scale = BOARD_SCALE
+
+	var viewport_size: Vector2 = _get_layout_viewport_size()
+	var top_bar_rect: Rect2 = Rect2(
+		Vector2(OUTER_MARGIN, TOP_BAR_Y),
+		Vector2(maxf(1.0, viewport_size.x - OUTER_MARGIN * 2.0), TOP_BAR_HEIGHT)
+	)
+	_set_control_rect(top_bar, top_bar_rect)
+	_set_control_rect(top_bar_content, Rect2(
+		Vector2(PANEL_INSET, 10.0),
+		Vector2(maxf(1.0, top_bar_rect.size.x - PANEL_INSET * 2.0), 24.0)
+	))
+
+	var side_panel_height: float = maxf(420.0, viewport_size.y - SIDE_PANEL_Y - SIDE_PANEL_BOTTOM_MARGIN)
+	var left_rect: Rect2 = Rect2(Vector2(OUTER_MARGIN, SIDE_PANEL_Y), Vector2(LEFT_PANEL_WIDTH, side_panel_height))
+	var right_rect: Rect2 = Rect2(
+		Vector2(maxf(left_rect.end.x + PANEL_GAP * 2.0, viewport_size.x - OUTER_MARGIN - RIGHT_PANEL_WIDTH), SIDE_PANEL_Y),
+		Vector2(RIGHT_PANEL_WIDTH, side_panel_height)
+	)
+	_set_control_rect(left_panel, left_rect)
+	_set_control_rect(left_panel_content, Rect2(
+		Vector2(PANEL_INSET, PANEL_INSET),
+		Vector2(maxf(1.0, left_rect.size.x - PANEL_INSET * 2.0), maxf(1.0, left_rect.size.y - PANEL_INSET * 2.0))
+	))
+	_set_control_rect(right_panel, right_rect)
+	_set_control_rect(right_panel_content, Rect2(
+		Vector2(PANEL_INSET, PANEL_INSET),
+		Vector2(maxf(1.0, right_rect.size.x - PANEL_INSET * 2.0), maxf(1.0, right_rect.size.y - PANEL_INSET * 2.0))
+	))
+
+	var board_left: float = left_rect.end.x + PANEL_GAP
+	var board_right: float = right_rect.position.x - PANEL_GAP
+	var board_area: Rect2 = Rect2(
+		Vector2(board_left, BOARD_TOP),
+		Vector2(maxf(1.0, board_right - board_left), maxf(1.0, viewport_size.y - BOARD_TOP - BOARD_BOTTOM_MARGIN))
+	)
+	var map_scale: float = minf(board_area.size.x / MAP_DESIGN_SIZE.x, board_area.size.y / MAP_DESIGN_SIZE.y)
+	map_scale = clampf(map_scale, 0.65, 1.0)
+	var map_size: Vector2 = MAP_DESIGN_SIZE * map_scale
+	var map_position: Vector2 = Vector2(
+		board_area.position.x + maxf(0.0, (board_area.size.x - map_size.x) * 0.5),
+		board_area.position.y + BOARD_TOP_PADDING
+	)
+	if map_position.y + map_size.y > board_area.end.y:
+		map_position.y = board_area.end.y - map_size.y
+	map_container.position = map_position
+	map_container.scale = Vector2(map_scale, map_scale)
+
+func _set_control_rect(control: Control, rect: Rect2) -> void:
+	if control == null:
+		return
+	control.position = rect.position
+	control.size = rect.size
+
+func _get_layout_viewport_size() -> Vector2:
+	if _layout_viewport_override.x > 0.0 and _layout_viewport_override.y > 0.0:
+		return _layout_viewport_override
+	var viewport_size: Vector2 = get_viewport_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		return DESIGN_VIEWPORT_SIZE
+	return viewport_size
+
+func apply_gameplay_layout_for_debug(viewport_size: Vector2) -> void:
+	_layout_viewport_override = viewport_size
+	_apply_gameplay_layout()
+	_center_camera()
+
+func get_layout_debug_rects() -> Dictionary:
+	var map_rect: Rect2 = Rect2(map_container.position, MAP_DESIGN_SIZE * map_container.scale)
+	return {
+		"viewport": Rect2(Vector2.ZERO, _get_layout_viewport_size()),
+		"top_bar": _control_global_rect(top_bar),
+		"left_panel": _control_global_rect(left_panel),
+		"right_panel": _control_global_rect(right_panel),
+		"map_playfield": map_rect,
+		"phase_action_button": _control_global_rect(action_button),
+		"force_complete_button": _control_global_rect(force_complete_button),
+		"select_manguerazo_button": _control_global_rect(select_manguerazo_button),
+		"select_cable_pelao_button": _control_global_rect(select_cable_pelao_button),
+		"upgrade_button": _control_global_rect(upgrade_button),
+		"sell_button": _control_global_rect(sell_button)
+	}
+
+func _control_global_rect(control: Control) -> Rect2:
+	if control == null:
+		return Rect2()
+	return control.get_global_rect()
 
 func request_sell_selected_defense() -> void:
 	if _is_wave_running:

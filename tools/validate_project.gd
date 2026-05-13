@@ -72,6 +72,8 @@ func _run_validation() -> void:
 
 	if not await _validate_room_hub_viewport_fit():
 		return
+	if not await _validate_gameplay_layout_contract():
+		return
 
 	var enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
 	var defense_scene: PackedScene = load("res://scenes/defenses/defense_base.tscn")
@@ -287,6 +289,88 @@ func _validate_room_hub_viewport_fit() -> bool:
 	room.queue_free()
 	await process_frame
 	return true
+
+func _validate_gameplay_layout_contract() -> bool:
+	root.size = Vector2i(1600, 900)
+	var gameplay_scene: PackedScene = load("res://scenes/gameplay/gameplay_root.tscn")
+	if gameplay_scene == null:
+		await _fail("Project validation failed: gameplay_root scene could not load for layout contract check.")
+		return false
+	var gameplay: Node2D = gameplay_scene.instantiate() as Node2D
+	if gameplay == null:
+		await _fail("Project validation failed: gameplay_root did not instantiate as Node2D for layout contract check.")
+		return false
+	_track_node(gameplay)
+	await process_frame
+	if not gameplay.has_method("apply_gameplay_layout_for_debug") or not gameplay.has_method("get_layout_debug_rects"):
+		await _fail("Project validation failed: gameplay root is missing layout debug API.")
+		return false
+
+	var viewport_sizes: Array[Vector2] = [
+		Vector2(1600.0, 900.0),
+		Vector2(1548.0, 871.0)
+	]
+	for viewport_size: Vector2 in viewport_sizes:
+		if not await _validate_gameplay_layout_for_size(gameplay, viewport_size):
+			return false
+
+	gameplay.queue_free()
+	await process_frame
+	return true
+
+func _validate_gameplay_layout_for_size(gameplay: Node2D, viewport_size: Vector2) -> bool:
+	gameplay.call("apply_gameplay_layout_for_debug", viewport_size)
+	await process_frame
+	var rects: Dictionary = gameplay.call("get_layout_debug_rects")
+	var viewport_rect: Rect2 = rects.get("viewport", Rect2(Vector2.ZERO, viewport_size))
+	var required_rects: Array[String] = [
+		"top_bar",
+		"left_panel",
+		"right_panel",
+		"map_playfield",
+		"phase_action_button",
+		"select_manguerazo_button",
+		"select_cable_pelao_button",
+		"upgrade_button",
+		"sell_button"
+	]
+	for rect_name: String in required_rects:
+		var rect: Rect2 = rects.get(rect_name, Rect2())
+		if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+			await _fail("Project validation failed: gameplay layout rect %s has invalid size at viewport %s: %s" % [rect_name, str(viewport_size), str(rect)])
+			return false
+		if not _rect_within(rect, viewport_rect):
+			await _fail("Project validation failed: gameplay layout rect %s is outside viewport %s: rect=%s viewport=%s" % [rect_name, str(viewport_size), str(rect), str(viewport_rect)])
+			return false
+
+	var top_bar_rect: Rect2 = rects.get("top_bar")
+	var left_panel_rect: Rect2 = rects.get("left_panel")
+	var right_panel_rect: Rect2 = rects.get("right_panel")
+	var map_rect: Rect2 = rects.get("map_playfield")
+	if _rects_overlap(left_panel_rect, map_rect):
+		await _fail("Project validation failed: gameplay left panel overlaps map playfield at viewport %s: left=%s map=%s" % [str(viewport_size), str(left_panel_rect), str(map_rect)])
+		return false
+	if _rects_overlap(right_panel_rect, map_rect):
+		await _fail("Project validation failed: gameplay right panel overlaps map playfield at viewport %s: right=%s map=%s" % [str(viewport_size), str(right_panel_rect), str(map_rect)])
+		return false
+	if _rects_overlap(top_bar_rect, map_rect):
+		await _fail("Project validation failed: gameplay top bar overlaps map playfield at viewport %s: top=%s map=%s" % [str(viewport_size), str(top_bar_rect), str(map_rect)])
+		return false
+	if map_rect.size.x < 700.0 or map_rect.size.y < 390.0:
+		await _fail("Project validation failed: gameplay map playfield is too small for desktop readability at viewport %s: %s" % [str(viewport_size), str(map_rect)])
+		return false
+	return true
+
+func _rect_within(rect: Rect2, bounds: Rect2) -> bool:
+	return rect.position.x >= bounds.position.x - 0.5 \
+		and rect.position.y >= bounds.position.y - 0.5 \
+		and rect.end.x <= bounds.end.x + 0.5 \
+		and rect.end.y <= bounds.end.y + 0.5
+
+func _rects_overlap(a: Rect2, b: Rect2) -> bool:
+	if a.size.x <= 0.0 or a.size.y <= 0.0 or b.size.x <= 0.0 or b.size.y <= 0.0:
+		return false
+	return a.intersects(b)
 
 func _room_rect_within_design_canvas(rect: Rect2) -> bool:
 	return rect.position.x >= -0.5 \

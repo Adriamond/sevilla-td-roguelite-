@@ -2234,3 +2234,46 @@ Acceptance criteria:
 - Future CR template includes MCP and visual screenshot fields.
 - Small-CR workflow remains unchanged.
 - Validation suite passes.
+
+## CR-V2D - Clean gameplay Build/Wave layout to avoid panel overlap and improve 1600x900 readability
+
+Status: implemented
+Date: 2026-05-13
+
+Requester intent:
+
+Make the gameplay Build/Wave screen readable at the desktop MVP baseline after the RoomHub cleanup, using Godot AI MCP read-only inspection first.
+
+Affected areas:
+
+- Design: gameplay screen composition and safe layout zones
+- Code: gameplay layout helper and project validation bounds checks
+- Data: none
+- UI: gameplay HUD/map/panel layout only
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep gameplay mechanics unchanged and reframe the gameplay screen into explicit viewport-responsive zones: top status bar, left build/actions panel, central map playfield, and right selected-defense panel.
+
+Implementation notes:
+
+- Godot AI MCP direct JSON-RPC read-only inspection confirmed the editor was playing `res://scenes/gameplay/gameplay_root.tscn`.
+- No MCP write actions were used because the editor was in playing state.
+- `GameplayRootController` now calculates gameplay layout from the active viewport instead of old 1280-era fixed coordinates.
+- The camera centers on the active gameplay viewport.
+- The map playfield is sized and positioned between left/right panels without overlap, with a cap that avoids scaling placeholder map art above its design size.
+- `validate_project.gd` now checks gameplay layout rects for top bar, side panels, map playfield, and key action buttons.
+- No tower mechanics, wave logic, rewards, balance, RoomHub behavior, or content data changed.
+
+Risks:
+
+- Bounds validation catches overlap/clipping regressions, but final visual acceptance still requires manual Play/F5 screenshot review.
+
+Acceptance criteria:
+
+- Build/Wave gameplay zones do not overlap at the 1600x900 design baseline.
+- Left build panel, right selected-defense panel, and top status bar stay inside the viewport.
+- Map playfield remains large enough for desktop readability.
+- Validation suite passes.
