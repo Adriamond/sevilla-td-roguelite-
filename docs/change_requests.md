@@ -2328,3 +2328,47 @@ Acceptance criteria:
 - HUD remains fixed and readable.
 - Build/select/sell/upgrade and wave flow are unchanged.
 - Validation suite passes.
+
+## CR-BIGMAP-2 - Expand Pino Montano into a larger navigable map blockout using existing camera/world infrastructure
+
+Status: implemented
+Date: 2026-05-14
+
+Requester intent:
+
+Make the current Pino Montano gameplay world substantially larger while preserving the existing single-path MVP mechanics, HUD lifecycle, camera navigation, build/select/sell/upgrade flow, room flow, rewards, and wave logic.
+
+Affected areas:
+
+- Design: large map footprint/blockout only
+- Scene: Pino Montano map background, route, markers, path visual, and build pad placement
+- Code: map fallback route/bounds and initial camera focus helper
+- Validation: large-map bounds, path length, marker, pad, and PathVisual consistency checks
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Use the existing `Path2D` centerline as the authoritative movement path, expand the placeholder map to a larger 3000x1450 world footprint, and rely on CR-BIGMAP-1 camera pan/zoom/clamp infrastructure to navigate it.
+
+Implementation notes:
+
+- Godot AI MCP direct JSON-RPC was attempted first, but this session returned MCP protocol/HTTP errors despite port 8000 being open; no MCP write actions were used.
+- `pino_montano_map.tscn` now uses a much larger blockout background with simple district polygons, a longer `MainPath`, matching `PathVisual`, moved START/END markers, and 16 unique build pads placed near the route.
+- `pino_montano_map_path.gd` fallback route points and fallback map bounds now match the large blockout footprint.
+- `GameplayRootController` starts the camera near `StartMarker` when a map is loaded, then clamps using the existing map-bounds API.
+- `validate_project.gd` now checks that map bounds and path length are large enough for this blockout, path endpoints/markers/pads are inside bounds, pad ids remain unique, and `PathVisual` remains aligned with `MainPath` length/endpoints.
+- No path corridor conversion, walls, minimap, reward changes, tower changes, balance changes, RoomHub changes, or external addon adoption were made.
+
+Risks:
+
+- The larger path increases travel time; this CR intentionally avoids balance changes, so manual Play/F5 should confirm the pacing still feels acceptable before later wide-corridor or balance CRs.
+- Visual acceptance still requires manual Play/F5 because deterministic validation checks contract geometry, not aesthetic composition.
+
+Acceptance criteria:
+
+- Map footprint is substantially larger and exposed through `get_map_bounds()`.
+- Camera can navigate the larger map through existing camera controls.
+- `MainPath`, `PathVisual`, START/END markers, and build pads are consistent and validated.
+- Existing build/select/sell/upgrade and wave flow remain unchanged.
+- Validation suite passes.

@@ -1,19 +1,22 @@
 extends Node2D
 
 const MAIN_ROUTE_POINTS: Array[Vector2] = [
-	Vector2(70, 480),
-	Vector2(300, 480),
-	Vector2(300, 360),
-	Vector2(700, 360),
-	Vector2(700, 260),
-	Vector2(380, 260),
-	Vector2(380, 150),
-	Vector2(840, 150),
-	Vector2(840, 70),
-	Vector2(900, 70)
+	Vector2(160, 1260),
+	Vector2(520, 1260),
+	Vector2(520, 1000),
+	Vector2(1020, 1000),
+	Vector2(1020, 760),
+	Vector2(620, 760),
+	Vector2(620, 500),
+	Vector2(1420, 500),
+	Vector2(1420, 260),
+	Vector2(2200, 260),
+	Vector2(2200, 650),
+	Vector2(2820, 650),
+	Vector2(2820, 250)
 ]
 
-const FALLBACK_MAP_BOUNDS: Rect2 = Rect2(Vector2(20.0, 20.0), Vector2(920.0, 500.0))
+const FALLBACK_MAP_BOUNDS: Rect2 = Rect2(Vector2.ZERO, Vector2(3000.0, 1450.0))
 
 func _ready() -> void:
 	var main_path: Path2D = get_node_or_null("MainPath")

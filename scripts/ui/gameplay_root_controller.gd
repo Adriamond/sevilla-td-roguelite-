@@ -615,8 +615,15 @@ func _reset_camera_to_map() -> void:
 	if camera == null:
 		return
 	camera.zoom = Vector2.ONE
-	camera.position = get_map_world_bounds().get_center()
+	camera.position = _get_initial_camera_world_position()
 	_clamp_camera_to_bounds()
+
+func _get_initial_camera_world_position() -> Vector2:
+	if _map_instance != null and is_instance_valid(_map_instance):
+		var start_marker: Node2D = _map_instance.get_node_or_null("StartMarker") as Node2D
+		if start_marker != null:
+			return start_marker.global_position
+	return get_map_world_bounds().get_center()
 
 func _clamp_camera_to_bounds() -> void:
 	var camera: Camera2D = _get_camera()

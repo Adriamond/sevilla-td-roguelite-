@@ -13,6 +13,10 @@ const SCENE_SPECS: Array[Dictionary] = [
 	{"scene": "res://scenes/defenses/defense_base.tscn", "root_script": "res://scripts/gameplay/defense_actor.gd"}
 ]
 
+const LARGE_MAP_MIN_SIZE: Vector2 = Vector2(2500.0, 1200.0)
+const LARGE_MAP_MIN_PATH_LENGTH: float = 3500.0
+const PATH_VISUAL_LENGTH_TOLERANCE: float = 0.08
+
 var _created_nodes: Array[Node] = []
 
 func _init() -> void:
@@ -519,19 +523,47 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 		if map_bounds.size.x <= 0.0 or map_bounds.size.y <= 0.0:
 			print("Map ", map_id, ": get_map_bounds returned invalid bounds: ", map_bounds)
 			return {"ok": false}
+		if map_bounds.size.x < LARGE_MAP_MIN_SIZE.x or map_bounds.size.y < LARGE_MAP_MIN_SIZE.y:
+			print("Map ", map_id, ": map bounds are too small for the large-map blockout: ", map_bounds)
+			return {"ok": false}
 
 		var ground_path_ids: PackedStringArray = map_def.get("ground_path_ids")
 		if not ground_path_ids.has("main"):
 			print("Map ", map_id, ": ground_path_ids must include 'main' for current MVP runtime.")
 			return {"ok": false}
 
+		var curve_points: PackedVector2Array = _curve_control_points(main_path.curve)
+		if curve_points.size() < 2:
+			print("Map ", map_id, ": MainPath must expose at least two control points.")
+			return {"ok": false}
+		var path_length: float = _polyline_length(curve_points)
+		if path_length < LARGE_MAP_MIN_PATH_LENGTH:
+			print("Map ", map_id, ": MainPath length is too short for the large-map blockout: ", path_length)
+			return {"ok": false}
+		var path_start: Vector2 = _path_point_to_map_local(map_root, main_path, curve_points[0])
+		var path_end: Vector2 = _path_point_to_map_local(map_root, main_path, curve_points[curve_points.size() - 1])
+		if not _point_inside_rect(path_start, map_bounds):
+			print("Map ", map_id, ": MainPath start is outside map bounds: ", path_start, " bounds=", map_bounds)
+			return {"ok": false}
+		if not _point_inside_rect(path_end, map_bounds):
+			print("Map ", map_id, ": MainPath end is outside map bounds: ", path_end, " bounds=", map_bounds)
+			return {"ok": false}
+
 		var start_marker: Node = map_root.get_node_or_null("StartMarker")
 		if start_marker == null:
 			print("Map ", map_id, ": missing StartMarker.")
 			return {"ok": false}
+		var start_marker_node: Node2D = start_marker as Node2D
+		if start_marker_node == null or not _point_inside_rect(map_root.to_local(start_marker_node.global_position), map_bounds):
+			print("Map ", map_id, ": StartMarker is outside map bounds.")
+			return {"ok": false}
 		var end_marker: Node = map_root.get_node_or_null("EndMarker")
 		if end_marker == null:
 			print("Map ", map_id, ": missing EndMarker.")
+			return {"ok": false}
+		var end_marker_node: Node2D = end_marker as Node2D
+		if end_marker_node == null or not _point_inside_rect(map_root.to_local(end_marker_node.global_position), map_bounds):
+			print("Map ", map_id, ": EndMarker is outside map bounds.")
 			return {"ok": false}
 
 		var pads_root: Node = map_root.get_node_or_null("BuildPads")
@@ -575,11 +607,26 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 			if pad_category.is_empty():
 				print("Map ", map_id, ": build pad ", pad_identifier, " missing pad_category.")
 				return {"ok": false}
+			var pad_position: Vector2 = map_root.to_local(pad.global_position)
+			if not _point_inside_rect(pad_position, map_bounds):
+				print("Map ", map_id, ": build pad ", pad_identifier, " is outside map bounds: ", pad_position)
+				return {"ok": false}
 
 		var path_visual: Line2D = map_root.get_node_or_null("PathVisual")
 		if path_visual != null and path_visual.points.size() >= 2:
-			if _polyline_length(path_visual.points) <= 0.0:
+			var visual_length: float = _polyline_length(path_visual.points)
+			if visual_length <= 0.0:
 				print("Map ", map_id, ": PathVisual exists but has zero length.")
+				return {"ok": false}
+			var length_delta: float = absf(visual_length - path_length) / maxf(path_length, 0.001)
+			if length_delta > PATH_VISUAL_LENGTH_TOLERANCE:
+				print("Map ", map_id, ": PathVisual length does not match MainPath length closely enough: visual=", visual_length, " path=", path_length)
+				return {"ok": false}
+			if path_visual.points[0].distance_to(curve_points[0]) > 1.0:
+				print("Map ", map_id, ": PathVisual start does not match MainPath start.")
+				return {"ok": false}
+			if path_visual.points[path_visual.points.size() - 1].distance_to(curve_points[curve_points.size() - 1]) > 1.0:
+				print("Map ", map_id, ": PathVisual end does not match MainPath end.")
 				return {"ok": false}
 
 		if first_valid_map_scene == null:
@@ -605,6 +652,19 @@ func _curve_length(curve: Curve2D) -> float:
 	for i: int in range(point_count):
 		control_points.append(curve.get_point_position(i))
 	return _polyline_length(control_points)
+
+func _curve_control_points(curve: Curve2D) -> PackedVector2Array:
+	var points: PackedVector2Array = PackedVector2Array()
+	if curve == null:
+		return points
+	for i: int in range(curve.get_point_count()):
+		points.append(curve.get_point_position(i))
+	return points
+
+func _path_point_to_map_local(map_root: Node2D, path: Path2D, point: Vector2) -> Vector2:
+	if map_root == null or path == null:
+		return point
+	return map_root.to_local(path.to_global(point))
 
 func _polyline_length(points: PackedVector2Array) -> float:
 	if points.size() < 2:
