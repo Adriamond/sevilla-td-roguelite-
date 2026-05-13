@@ -32,6 +32,8 @@ func _run_validation() -> void:
 		return
 	if not _assert_true(int(run_state.get("total_rounds")) == int(run_controller.call("get_total_rounds")), "Expected run_state total_rounds to match run controller total rounds."):
 		return
+	if not _validate_room_interactions(run_controller, run_state):
+		return
 
 	run_controller.call("continue_from_room")
 	if not _assert_state(run_controller, RunController.RunStateType.BUILD_PHASE, "BUILD_PHASE"):
@@ -220,11 +222,19 @@ func _validate_runtime_persistence() -> bool:
 
 	boot.call("_on_start_game_requested")
 	await process_frame
+	var gameplay_in_room: Node = boot.get("_gameplay_screen")
+	if not _assert_true(gameplay_in_room != null, "Expected gameplay runtime to exist behind Room screen."):
+		return false
+	if not _assert_true(not bool(gameplay_in_room.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be hidden while Room screen is displayed."):
+		return false
+
 	boot.call("_on_room_continue_requested")
 	await process_frame
 
 	var gameplay: Node = boot.get("_gameplay_screen")
 	if not _assert_true(gameplay != null, "Expected gameplay runtime to exist in build phase."):
+		return false
+	if not _assert_true(bool(gameplay.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be visible in Build Phase."):
 		return false
 	var run_state: Node = _ensure_singleton("RunState", "res://autoload/run_state.gd")
 	run_state.set("gold", 400)
@@ -376,11 +386,15 @@ func _validate_runtime_persistence() -> bool:
 	await process_frame
 	boot.call("_on_reward_chosen", "litrito")
 	await process_frame
+	if not _assert_true(not bool(gameplay.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be hidden after reward returns to Room."):
+		return false
 	boot.call("_on_room_continue_requested")
 	await process_frame
 
 	var gameplay_next_round: Node = boot.get("_gameplay_screen")
 	if not _assert_true(gameplay_next_round == gameplay, "Expected gameplay runtime instance to persist into next round build phase."):
+		return false
+	if not _assert_true(bool(gameplay_next_round.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be visible after Room Continue into next Build Phase."):
 		return false
 	if not _assert_true(String(gameplay_next_round.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to reset to Build Phase in next round."):
 		return false
@@ -408,6 +422,44 @@ func _validate_runtime_persistence() -> bool:
 	boot.queue_free()
 	await process_frame
 	await process_frame
+	return true
+
+func _validate_room_interactions(run_controller: Node, run_state: Node) -> bool:
+	var base_core_hp: int = int(run_state.get("core_hp"))
+	var madre_result: Dictionary = run_controller.call("use_room_interaction", "llamar_madre")
+	if not _assert_true(bool(madre_result.get("ok", false)), "Expected llamar_madre room interaction to succeed."):
+		return false
+	if not _assert_true(int(run_state.get("core_hp")) == base_core_hp + 5, "Expected llamar_madre to grant +5 Core HP."):
+		return false
+	var madre_repeat: Dictionary = run_controller.call("use_room_interaction", "llamar_madre")
+	if not _assert_true(not bool(madre_repeat.get("ok", false)), "Expected llamar_madre to be limited to one use per run."):
+		return false
+	if not _assert_true(int(run_state.get("core_hp")) == base_core_hp + 5, "Expected llamar_madre duplicate use to not heal again."):
+		return false
+
+	var base_gold: int = int(run_state.get("gold"))
+	var coins_result: Dictionary = run_controller.call("use_room_interaction", "buscar_monedas_pantalon")
+	if not _assert_true(bool(coins_result.get("ok", false)), "Expected buscar_monedas_pantalon room interaction to succeed."):
+		return false
+	if not _assert_true(int(run_state.get("gold")) == base_gold + 25, "Expected buscar_monedas_pantalon to grant +25 gold."):
+		return false
+	var coins_repeat: Dictionary = run_controller.call("use_room_interaction", "buscar_monedas_pantalon")
+	if not _assert_true(not bool(coins_repeat.get("ok", false)), "Expected buscar_monedas_pantalon to be limited to one use per run."):
+		return false
+	if not _assert_true(int(run_state.get("gold")) == base_gold + 25, "Expected buscar_monedas_pantalon duplicate use to not grant gold again."):
+		return false
+
+	var router_result: Dictionary = run_controller.call("use_room_interaction", "reiniciar_router")
+	if not _assert_true(bool(router_result.get("ok", false)), "Expected reiniciar_router room interaction to succeed."):
+		return false
+	if not _assert_true(is_equal_approx(float(run_state.get("pending_next_wave_crit_bonus")), 0.1), "Expected reiniciar_router to set pending next-wave crit bonus."):
+		return false
+
+	run_controller.call("start_run", DEBUG_SEED + 1, DEBUG_CHARACTER_ID, DEBUG_MAP_ID)
+	if not _assert_true(not bool(run_state.call("has_used_room_interaction", "llamar_madre")), "Expected room interaction use state to reset on new run."):
+		return false
+	if not _assert_true(is_equal_approx(float(run_state.get("pending_next_wave_crit_bonus")), 0.0), "Expected pending router crit bonus to reset on new run."):
+		return false
 	return true
 
 func _validate_defeat_flow() -> bool:

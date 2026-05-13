@@ -35,6 +35,8 @@ func start_round(round_def: Resource) -> bool:
 	_spawned_count = 0
 
 	var run_state: Node = _run_state()
+	if run_state != null:
+		run_state.call("activate_next_wave_room_bonuses")
 	var current_round: int = int(run_state.get("current_round")) if run_state != null else 0
 	wave_started.emit(current_round)
 	_spawn_round_steps()
@@ -45,6 +47,8 @@ func complete_wave() -> void:
 		return
 	_running = false
 	var run_state: Node = _run_state()
+	if run_state != null:
+		run_state.call("clear_current_wave_room_bonuses")
 	var current_round: int = int(run_state.get("current_round")) if run_state != null else 0
 	wave_completed.emit(current_round)
 
@@ -59,6 +63,9 @@ func debug_force_complete() -> bool:
 	_active_enemies.clear()
 	active_enemy_count_changed.emit(0)
 	_spawn_sequence_done = true
+	var run_state: Node = _run_state()
+	if run_state != null:
+		run_state.call("clear_current_wave_room_bonuses")
 	_check_wave_completion()
 	return true
 

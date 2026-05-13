@@ -30,3 +30,10 @@ These rules are mandatory for gameplay runtime ownership.
 ## Validation requirement
 
 - Any feature that adds persistent runtime objects must include deterministic lifecycle smoke validation.
+
+## MCP/editor inspection
+
+- Godot AI MCP may inspect live scene state, hierarchy, node properties, logs, and screenshots when useful.
+- MCP inspection must not change runtime lifecycle ownership rules.
+- Room/Reward lifecycle, `GameplayRoot` persistence, and wave/run reset rules remain source-of-truth even when using editor automation.
+- MCP write actions that affect scenes, scripts, resources, project settings, or saved state require explicit CR scope and must follow `docs/current_workflow.md`.

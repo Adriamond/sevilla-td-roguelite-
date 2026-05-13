@@ -44,7 +44,9 @@ func _show_room() -> void:
 		int(run_state.get("gold")),
 		int(run_state.get("core_hp"))
 	)
+	room.set_interactions(_run_controller.get_room_interaction_view_data())
 	room.continue_requested.connect(_on_room_continue_requested)
+	room.interaction_requested.connect(_on_room_interaction_requested)
 
 func _show_build_phase() -> void:
 	_clear_primary_screen()
@@ -114,6 +116,20 @@ func _on_quit_requested() -> void:
 func _on_room_continue_requested() -> void:
 	_run_controller.continue_from_room()
 
+func _on_room_interaction_requested(interaction_id: String) -> void:
+	var result: Dictionary = _run_controller.use_room_interaction(interaction_id)
+	var room: RoomScreenController = _overlay_screen as RoomScreenController
+	if room == null:
+		return
+	var run_state: Node = _run_state()
+	room.set_status(
+		int(run_state.get("current_round")),
+		int(run_state.get("gold")),
+		int(run_state.get("core_hp"))
+	)
+	room.set_interactions(_run_controller.get_room_interaction_view_data())
+	room.set_message(String(result.get("message", "")))
+
 func _on_start_wave_requested() -> void:
 	_run_controller.start_current_wave()
 
@@ -178,7 +194,7 @@ func _clear_overlay() -> void:
 func _set_gameplay_visible(value: bool) -> void:
 	if _gameplay_screen == null or not is_instance_valid(_gameplay_screen):
 		return
-	_gameplay_screen.visible = value
+	_gameplay_screen.set_gameplay_presentation_visible(value)
 
 func _cleanup_run_runtime() -> void:
 	_clear_overlay()

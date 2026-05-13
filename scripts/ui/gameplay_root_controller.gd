@@ -32,6 +32,7 @@ signal core_depleted
 @onready var map_container: Node2D = %MapContainer
 @onready var enemy_layer: Node2D = %EnemyLayer
 @onready var defense_layer: Node2D = %DefenseLayer
+@onready var ui_layer: CanvasLayer = $UILayer
 @onready var path_controller: PathController = %PathController
 @onready var spawn_controller: SpawnController = %SpawnController
 @onready var wave_controller: WaveController = %WaveController
@@ -137,6 +138,16 @@ func set_interactive_build_enabled(enabled: bool) -> void:
 		build_hint_label.text = "Click pad to build manguerazo"
 		return
 	build_hint_label.text = "Build disabled during wave"
+
+func set_gameplay_presentation_visible(value: bool) -> void:
+	visible = value
+	if ui_layer != null:
+		ui_layer.visible = value
+
+func is_gameplay_presentation_visible() -> bool:
+	if ui_layer == null:
+		return visible
+	return visible and ui_layer.visible
 
 func reset_run_runtime() -> void:
 	_is_wave_running = false

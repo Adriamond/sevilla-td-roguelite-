@@ -69,6 +69,16 @@ See also:
 
 ---
 
+## Godot AI MCP usage
+
+- Follow the Godot AI MCP rules in `docs/current_workflow.md`.
+- MCP is optional and supplements the normal small-CR workflow; it does not replace repository search, validation, or manual Play/F5 acceptance.
+- Use read-only MCP inspection first for visual/layout scene issues when available.
+- Do not use MCP write actions while the editor is playing.
+- Do not use high-risk MCP actions such as `scene_save`, `project_run`, `script_patch`, `batch_execute`, project setting writes, or broad node mutations unless the CR explicitly allows them.
+
+---
+
 ## Source of truth documents
 
 Before implementing gameplay, read:
@@ -80,6 +90,7 @@ Before implementing gameplay, read:
 - `docs/codex_tasks.md`
 - `docs/current_workflow.md`
 - `docs/lifecycle_rules.md`
+- `docs/next_cr_template.md`
 
 If these docs conflict with chat instructions, the latest explicit user instruction wins.
 If docs conflict with each other, stop and report the conflict before implementing.

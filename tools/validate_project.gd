@@ -70,6 +70,9 @@ func _run_validation() -> void:
 
 		instance.free()
 
+	if not await _validate_room_hub_viewport_fit():
+		return
+
 	var enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
 	var defense_scene: PackedScene = load("res://scenes/defenses/defense_base.tscn")
 	if enemy_scene == null or defense_scene == null:
@@ -184,6 +187,16 @@ func _run_validation() -> void:
 	if boss_def == null:
 		await _fail("Project validation failed: killo_bulevar_boss.tres could not be loaded.")
 		return
+	var bruiser_def: Resource = load("res://data/enemies/resonante_bruiser.tres")
+	if bruiser_def == null:
+		await _fail("Project validation failed: resonante_bruiser.tres could not be loaded for boss balance sanity.")
+		return
+	if float(boss_def.get("base_hp")) <= float(bruiser_def.get("base_hp")):
+		await _fail("Project validation failed: boss HP should remain above normal tank HP.")
+		return
+	if float(boss_def.get("base_speed")) > 0.55:
+		await _fail("Project validation failed: boss speed is too high for current MVP path readability.")
+		return
 	var boss_scene: PackedScene = load(String(boss_def.get("scene_path")))
 	if boss_scene == null:
 		await _fail("Project validation failed: boss enemy scene could not be loaded.")
@@ -203,6 +216,83 @@ func _run_validation() -> void:
 	print("Project validation OK.")
 	call_deferred("_exit_with_code", 0)
 	return
+
+func _validate_room_hub_viewport_fit() -> bool:
+	root.size = Vector2i(1600, 900)
+	var room_scene: PackedScene = load("res://scenes/room/room_hub.tscn")
+	if room_scene == null:
+		await _fail("Project validation failed: room_hub scene could not load for viewport-fit check.")
+		return false
+	var room: Control = room_scene.instantiate() as Control
+	if room == null:
+		await _fail("Project validation failed: room_hub did not instantiate as Control for viewport-fit check.")
+		return false
+	_track_node(room)
+	await process_frame
+	if room.has_method("show_room"):
+		room.call("show_room")
+	await process_frame
+	var viewport_rect: Rect2 = Rect2(Vector2.ZERO, root.size)
+	var content_rect: Rect2 = room.get_rect()
+	if room.has_method("get_designed_content_rect"):
+		content_rect = room.call("get_designed_content_rect")
+	if content_rect.position.x < -0.5 or content_rect.position.y < -0.5:
+		await _fail("Project validation failed: RoomHub content starts outside viewport: %s" % str(content_rect))
+		return false
+	if content_rect.end.x > viewport_rect.end.x + 0.5 or content_rect.end.y > viewport_rect.end.y + 0.5:
+		await _fail("Project validation failed: RoomHub content exceeds viewport bounds: content=%s viewport=%s" % [str(content_rect), str(viewport_rect)])
+		return false
+	var required_nodes: Array[String] = [
+		"StatusPanel",
+		"InteractionPanel",
+		"ActionPanel",
+		"ContinueButton",
+		"RoomMessageLabel",
+		"PhoneHotspotButton",
+		"PantsHotspotButton",
+		"RouterHotspotButton",
+		"PhoneHotspotFrame",
+		"PantsHotspotFrame",
+		"RouterHotspotFrame"
+	]
+	for node_name: String in required_nodes:
+		var ui_node: Control = room.find_child(node_name, true, false) as Control
+		if ui_node == null:
+			await _fail("Project validation failed: RoomHub missing required UI node for bounds check: %s" % node_name)
+			return false
+		if not _room_rect_within_design_canvas(ui_node.get_global_rect()):
+			await _fail("Project validation failed: RoomHub node %s is outside 1600x900 design bounds: %s" % [node_name, str(ui_node.get_global_rect())])
+			return false
+	var safe_right_nodes: Array[String] = [
+		"InteractionPanel",
+		"PhoneHotspotButton",
+		"PhoneHotspotFrame"
+	]
+	for node_name: String in safe_right_nodes:
+		var safe_node: Control = room.find_child(node_name, true, false) as Control
+		if safe_node != null and safe_node.get_global_rect().end.x > 1440.0:
+			await _fail("Project validation failed: RoomHub node %s is too close to the right edge for manual debug chrome safety: %s" % [node_name, str(safe_node.get_global_rect())])
+			return false
+	var safe_bottom_nodes: Array[String] = [
+		"ActionPanel",
+		"ContinueButton",
+		"PantsHotspotButton",
+		"PantsHotspotFrame"
+	]
+	for node_name: String in safe_bottom_nodes:
+		var safe_node: Control = room.find_child(node_name, true, false) as Control
+		if safe_node != null and safe_node.get_global_rect().end.y > 840.0:
+			await _fail("Project validation failed: RoomHub node %s is too close to the bottom edge for manual debug chrome safety: %s" % [node_name, str(safe_node.get_global_rect())])
+			return false
+	room.queue_free()
+	await process_frame
+	return true
+
+func _room_rect_within_design_canvas(rect: Rect2) -> bool:
+	return rect.position.x >= -0.5 \
+		and rect.position.y >= -0.5 \
+		and rect.end.x <= 1600.5 \
+		and rect.end.y <= 900.5
 
 func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 	if content_db == null:

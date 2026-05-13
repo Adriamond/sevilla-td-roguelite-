@@ -11,63 +11,572 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -170.0
-offset_top = -120.0
-offset_right = 170.0
-offset_bottom = 120.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Wall" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1600.0
+offset_bottom = 548.0
+color = Color(0.13, 0.2, 0.24, 1)
 
-[node name="TitleLabel" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Room (Placeholder)"
+[node name="WallBand" type="ColorRect" parent="."]
+layout_mode = 0
+offset_top = 458.0
+offset_right = 1600.0
+offset_bottom = 548.0
+color = Color(0.09, 0.15, 0.18, 1)
+
+[node name="Floor" type="ColorRect" parent="."]
+layout_mode = 0
+offset_top = 548.0
+offset_right = 1600.0
+offset_bottom = 900.0
+color = Color(0.18, 0.12, 0.09, 1)
+
+[node name="FloorHighlight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 280.0
+offset_top = 612.0
+offset_right = 1320.0
+offset_bottom = 804.0
+color = Color(0.24, 0.16, 0.11, 0.45)
+
+[node name="BackWallShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_top = 532.0
+offset_right = 1600.0
+offset_bottom = 560.0
+color = Color(0.03, 0.05, 0.06, 0.62)
+
+[node name="WindowFrame" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 82.0
+offset_right = 868.0
+offset_bottom = 266.0
+color = Color(0.04, 0.07, 0.09, 1)
+
+[node name="WindowGlow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 576.0
+offset_top = 98.0
+offset_right = 852.0
+offset_bottom = 250.0
+color = Color(0.18, 0.38, 0.48, 0.86)
+
+[node name="WindowSplitVertical" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 98.0
+offset_right = 718.0
+offset_bottom = 250.0
+color = Color(0.04, 0.07, 0.09, 1)
+
+[node name="WindowSplitHorizontal" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 576.0
+offset_top = 172.0
+offset_right = 852.0
+offset_bottom = 180.0
+color = Color(0.04, 0.07, 0.09, 1)
+
+[node name="PosterShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 96.0
+offset_right = 508.0
+offset_bottom = 238.0
+color = Color(0.05, 0.07, 0.08, 0.9)
+
+[node name="Poster" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 106.0
+offset_right = 498.0
+offset_bottom = 228.0
+color = Color(0.74, 0.38, 0.16, 1)
+
+[node name="PosterLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 407.0
+offset_top = 140.0
+offset_right = 492.0
+offset_bottom = 196.0
+theme_override_font_sizes/font_size = 15
+text = "NO HAY\nWI-FI"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="RoundRow" type="HBoxContainer" parent="VBoxContainer"]
+[node name="DoorShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1198.0
+offset_top = 196.0
+offset_right = 1410.0
+offset_bottom = 666.0
+color = Color(0.05, 0.04, 0.04, 0.85)
+
+[node name="Door" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1216.0
+offset_top = 210.0
+offset_right = 1390.0
+offset_bottom = 654.0
+color = Color(0.28, 0.16, 0.09, 1)
+
+[node name="DoorPanelTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1236.0
+offset_top = 240.0
+offset_right = 1370.0
+offset_bottom = 392.0
+color = Color(0.21, 0.11, 0.07, 1)
+
+[node name="DoorPanelBottom" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1236.0
+offset_top = 430.0
+offset_right = 1370.0
+offset_bottom = 612.0
+color = Color(0.21, 0.11, 0.07, 1)
+
+[node name="DoorKnob" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1350.0
+offset_top = 430.0
+offset_right = 1370.0
+offset_bottom = 450.0
+color = Color(0.92, 0.72, 0.28, 1)
+
+[node name="BedShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 626.0
+offset_right = 758.0
+offset_bottom = 778.0
+color = Color(0.04, 0.04, 0.05, 0.62)
+
+[node name="BedBase" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 314.0
+offset_top = 586.0
+offset_right = 750.0
+offset_bottom = 740.0
+color = Color(0.1, 0.12, 0.17, 1)
+
+[node name="BedBlanket" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 552.0
+offset_right = 742.0
+offset_bottom = 684.0
+color = Color(0.62, 0.17, 0.16, 1)
+
+[node name="BlanketStripe" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 602.0
+offset_right = 742.0
+offset_bottom = 624.0
+color = Color(0.84, 0.36, 0.2, 1)
+
+[node name="Pillow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 568.0
+offset_right = 490.0
+offset_bottom = 634.0
+color = Color(0.86, 0.83, 0.7, 1)
+
+[node name="DeskShadow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 742.0
+offset_top = 624.0
+offset_right = 1196.0
+offset_bottom = 776.0
+color = Color(0.03, 0.035, 0.04, 0.58)
+
+[node name="DeskBack" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 770.0
+offset_top = 548.0
+offset_right = 1192.0
+offset_bottom = 644.0
+color = Color(0.17, 0.09, 0.055, 1)
+
+[node name="DeskTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 748.0
+offset_top = 528.0
+offset_right = 1214.0
+offset_bottom = 580.0
+color = Color(0.32, 0.18, 0.09, 1)
+
+[node name="DeskLegLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 798.0
+offset_top = 580.0
+offset_right = 834.0
+offset_bottom = 778.0
+color = Color(0.15, 0.08, 0.05, 1)
+
+[node name="DeskLegRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1114.0
+offset_top = 580.0
+offset_right = 1150.0
+offset_bottom = 744.0
+color = Color(0.15, 0.08, 0.05, 1)
+
+[node name="MonitorStand" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 954.0
+offset_top = 488.0
+offset_right = 994.0
+offset_bottom = 532.0
+color = Color(0.02, 0.025, 0.03, 1)
+
+[node name="MonitorBase" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 902.0
+offset_top = 526.0
+offset_right = 1048.0
+offset_bottom = 548.0
+color = Color(0.02, 0.025, 0.03, 1)
+
+[node name="Monitor" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 820.0
+offset_top = 300.0
+offset_right = 1130.0
+offset_bottom = 494.0
+color = Color(0.015, 0.02, 0.025, 1)
+
+[node name="MonitorScreen" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 842.0
+offset_top = 322.0
+offset_right = 1108.0
+offset_bottom = 470.0
+color = Color(0.04, 0.24, 0.22, 1)
+
+[node name="MonitorGlow" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 860.0
+offset_top = 342.0
+offset_right = 1090.0
+offset_bottom = 452.0
+color = Color(0.12, 0.48, 0.38, 0.38)
+
+[node name="MonitorLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 870.0
+offset_top = 370.0
+offset_right = 1080.0
+offset_bottom = 430.0
+theme_override_font_sizes/font_size = 24
+text = "SEVILLA TD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Keyboard" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 858.0
+offset_top = 546.0
+offset_right = 1088.0
+offset_bottom = 574.0
+color = Color(0.025, 0.03, 0.035, 1)
+
+[node name="ChairBack" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1018.0
+offset_top = 616.0
+offset_right = 1146.0
+offset_bottom = 720.0
+color = Color(0.08, 0.13, 0.17, 1)
+
+[node name="ChairSeat" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 994.0
+offset_top = 704.0
+offset_right = 1170.0
+offset_bottom = 752.0
+color = Color(0.11, 0.17, 0.22, 1)
+
+[node name="PantsShape" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1030.0
+offset_top = 642.0
+offset_right = 1130.0
+offset_bottom = 708.0
+color = Color(0.08, 0.21, 0.44, 1)
+
+[node name="PantsPocket" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1088.0
+offset_top = 656.0
+offset_right = 1116.0
+offset_bottom = 684.0
+color = Color(0.18, 0.34, 0.62, 1)
+
+[node name="RouterBody" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1132.0
+offset_top = 486.0
+offset_right = 1214.0
+offset_bottom = 526.0
+color = Color(0.9, 0.86, 0.7, 1)
+
+[node name="RouterAntennaLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1142.0
+offset_top = 438.0
+offset_right = 1150.0
+offset_bottom = 488.0
+color = Color(0.9, 0.86, 0.7, 1)
+
+[node name="RouterAntennaRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1194.0
+offset_top = 438.0
+offset_right = 1202.0
+offset_bottom = 488.0
+color = Color(0.9, 0.86, 0.7, 1)
+
+[node name="RouterLight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1148.0
+offset_top = 500.0
+offset_right = 1162.0
+offset_bottom = 514.0
+color = Color(0.2, 1, 0.42, 1)
+
+[node name="Phone" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 518.0
+offset_right = 1186.0
+offset_bottom = 578.0
+color = Color(0.035, 0.04, 0.045, 1)
+
+[node name="PhoneScreen" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1146.0
+offset_top = 528.0
+offset_right = 1178.0
+offset_bottom = 562.0
+color = Color(0.12, 0.42, 0.54, 1)
+
+[node name="PhoneHotspotFrame" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1120.0
+offset_top = 456.0
+offset_right = 1408.0
+offset_bottom = 514.0
+color = Color(0.98, 0.72, 0.22, 0.42)
+
+[node name="PhoneHotspotButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1128.0
+offset_top = 464.0
+offset_right = 1400.0
+offset_bottom = 506.0
+theme_override_font_sizes/font_size = 15
+text = "Telefono / puerta - Llamar"
+autowrap_mode = 3
+
+[node name="PantsHotspotFrame" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 988.0
+offset_top = 758.0
+offset_right = 1188.0
+offset_bottom = 812.0
+color = Color(0.98, 0.72, 0.22, 0.42)
+
+[node name="PantsHotspotButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 996.0
+offset_top = 766.0
+offset_right = 1180.0
+offset_bottom = 804.0
+theme_override_font_sizes/font_size = 14
+text = "Pantalon - monedas"
+autowrap_mode = 3
+
+[node name="RouterHotspotFrame" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1092.0
+offset_top = 394.0
+offset_right = 1268.0
+offset_bottom = 452.0
+color = Color(0.98, 0.72, 0.22, 0.42)
+
+[node name="RouterHotspotButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1100.0
+offset_top = 402.0
+offset_right = 1260.0
+offset_bottom = 444.0
+theme_override_font_sizes/font_size = 14
+text = "Router - reiniciar"
+autowrap_mode = 3
+
+[node name="StatusPanel" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 30.0
+offset_right = 348.0
+offset_bottom = 186.0
+color = Color(0.035, 0.05, 0.065, 0.9)
+
+[node name="StatusAccent" type="ColorRect" parent="StatusPanel"]
+layout_mode = 0
+offset_right = 316.0
+offset_bottom = 6.0
+color = Color(0.9, 0.48, 0.18, 1)
+
+[node name="StatusVBox" type="VBoxContainer" parent="StatusPanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 300.0
+offset_bottom = 140.0
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="StatusPanel/StatusVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Habitacion de Manue"
+
+[node name="RoundRow" type="HBoxContainer" parent="StatusPanel/StatusVBox"]
 layout_mode = 2
 
-[node name="RoundTextLabel" type="Label" parent="VBoxContainer/RoundRow"]
+[node name="RoundTextLabel" type="Label" parent="StatusPanel/StatusVBox/RoundRow"]
 layout_mode = 2
 text = "Round:"
 
-[node name="RoundValueLabel" type="Label" parent="VBoxContainer/RoundRow"]
+[node name="RoundValueLabel" type="Label" parent="StatusPanel/StatusVBox/RoundRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "1"
 
-[node name="GoldRow" type="HBoxContainer" parent="VBoxContainer"]
+[node name="GoldRow" type="HBoxContainer" parent="StatusPanel/StatusVBox"]
 layout_mode = 2
 
-[node name="GoldTextLabel" type="Label" parent="VBoxContainer/GoldRow"]
+[node name="GoldTextLabel" type="Label" parent="StatusPanel/StatusVBox/GoldRow"]
 layout_mode = 2
 text = "Gold:"
 
-[node name="GoldValueLabel" type="Label" parent="VBoxContainer/GoldRow"]
+[node name="GoldValueLabel" type="Label" parent="StatusPanel/StatusVBox/GoldRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "140"
 
-[node name="CoreHPRow" type="HBoxContainer" parent="VBoxContainer"]
+[node name="CoreHPRow" type="HBoxContainer" parent="StatusPanel/StatusVBox"]
 layout_mode = 2
 
-[node name="CoreHPTextLabel" type="Label" parent="VBoxContainer/CoreHPRow"]
+[node name="CoreHPTextLabel" type="Label" parent="StatusPanel/StatusVBox/CoreHPRow"]
 layout_mode = 2
 text = "Core HP:"
 
-[node name="CoreHPValueLabel" type="Label" parent="VBoxContainer/CoreHPRow"]
+[node name="CoreHPValueLabel" type="Label" parent="StatusPanel/StatusVBox/CoreHPRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "20"
 
-[node name="ContinueButton" type="Button" parent="VBoxContainer"]
+[node name="ActionPanel" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 612.0
+offset_right = 480.0
+offset_bottom = 812.0
+color = Color(0.035, 0.05, 0.065, 0.9)
+
+[node name="ActionAccent" type="ColorRect" parent="ActionPanel"]
+offset_top = 0.0
+offset_left = 0.0
+layout_mode = 0
+offset_right = 448.0
+offset_bottom = 6.0
+color = Color(0.22, 0.62, 0.72, 1)
+
+[node name="ActionVBox" type="VBoxContainer" parent="ActionPanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 432.0
+offset_bottom = 184.0
+theme_override_constants/separation = 10
+
+[node name="RoomMessageLabel" type="Label" parent="ActionPanel/ActionVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 86)
 layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Entre rondas puedes hacer una chapuza de supervivencia."
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="ActionPanel/ActionVBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "Continue"
 
-[connection signal="pressed" from="VBoxContainer/ContinueButton" to="." method="request_continue"]
+[node name="InteractionPanel" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1064.0
+offset_top = 32.0
+offset_right = 1416.0
+offset_bottom = 318.0
+color = Color(0.035, 0.05, 0.065, 0.86)
+
+[node name="InteractionAccent" type="ColorRect" parent="InteractionPanel"]
+offset_top = 0.0
+offset_left = 0.0
+layout_mode = 0
+offset_right = 352.0
+offset_bottom = 6.0
+color = Color(0.98, 0.72, 0.22, 1)
+
+[node name="InteractionsVBox" type="VBoxContainer" parent="InteractionPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 14.0
+offset_right = 340.0
+offset_bottom = 270.0
+theme_override_constants/separation = 7
+
+[node name="InteractionTitle" type="Label" parent="InteractionPanel/InteractionsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Acciones de cuarto"
+horizontal_alignment = 1
+
+[node name="InteractionButton1" type="Button" parent="InteractionPanel/InteractionsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Llamar a la madre"
+autowrap_mode = 3
+
+[node name="InteractionButton2" type="Button" parent="InteractionPanel/InteractionsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Buscar monedas"
+autowrap_mode = 3
+
+[node name="InteractionButton3" type="Button" parent="InteractionPanel/InteractionsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Reiniciar router"
+autowrap_mode = 3
+
+[connection signal="pressed" from="ActionPanel/ActionVBox/ContinueButton" to="." method="request_continue"]

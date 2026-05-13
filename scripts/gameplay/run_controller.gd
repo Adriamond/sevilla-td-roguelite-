@@ -25,6 +25,11 @@ const ROUND_SEQUENCE: Array[String] = [
 	"round_05",
 	"round_06_boss"
 ]
+const ROOM_INTERACTION_IDS: Array[String] = [
+	"llamar_madre",
+	"buscar_monedas_pantalon",
+	"reiniciar_router"
+]
 
 func start_run(seed: int, character_id: String, map_id: String) -> void:
 	_run_state().call("reset_run", seed, character_id, map_id)
@@ -81,6 +86,60 @@ func accept_reward(item_id: String) -> void:
 	run_state.set("current_round", next_round)
 	run_state.get("round_changed").emit(next_round)
 	transition_to(RunStateType.ROOM)
+
+func use_room_interaction(interaction_id: String) -> Dictionary:
+	var run_state: Node = _run_state()
+	if interaction_id.is_empty() or not ROOM_INTERACTION_IDS.has(interaction_id):
+		return {"ok": false, "message": "Interaccion no disponible."}
+	if bool(run_state.call("has_used_room_interaction", interaction_id)):
+		return {"ok": false, "message": "Ya lo has usado en esta run."}
+
+	var interaction_def: Resource = _content_db().get("room_interactions").get(interaction_id)
+	if interaction_def == null:
+		return {"ok": false, "message": "Falta la data de la interaccion."}
+
+	match interaction_id:
+		"llamar_madre":
+			run_state.call("heal_core", 5)
+		"buscar_monedas_pantalon":
+			run_state.call("add_gold", 25)
+		"reiniciar_router":
+			run_state.call("grant_next_wave_crit_bonus", 0.10)
+		_:
+			return {"ok": false, "message": "Interaccion sin efecto MVP."}
+
+	run_state.call("mark_room_interaction_used", interaction_id)
+	return {
+		"ok": true,
+		"message": String(interaction_def.get("success_text_es"))
+	}
+
+func get_room_interaction_view_data() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var run_state: Node = _run_state()
+	var interactions: Dictionary = _content_db().get("room_interactions")
+	for interaction_id: String in ROOM_INTERACTION_IDS:
+		var interaction_def: Resource = interactions.get(interaction_id)
+		if interaction_def == null:
+			continue
+		result.append({
+			"id": interaction_id,
+			"name": String(interaction_def.get("display_name_es")),
+			"effect": _get_room_interaction_effect_text(interaction_id),
+			"used": bool(run_state.call("has_used_room_interaction", interaction_id))
+		})
+	return result
+
+func _get_room_interaction_effect_text(interaction_id: String) -> String:
+	match interaction_id:
+		"llamar_madre":
+			return "+5 Core HP"
+		"buscar_monedas_pantalon":
+			return "+25 gold"
+		"reiniciar_router":
+			return "+10% crit en la proxima oleada"
+		_:
+			return "Efecto MVP"
 
 func _apply_reward_effect(item_id: String, run_state: Node) -> void:
 	match item_id:

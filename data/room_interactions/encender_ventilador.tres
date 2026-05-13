@@ -4,18 +4,18 @@
 
 [resource]
 script = ExtResource("1")
-id = "encender_ventilador"
-display_name = "Turn On Fan"
-description = "Spend charge for control support."
-display_name_es = "Encender ventilador"
-description_es = "Gasta carga para bajar la calo."
-success_text_es = "Se nota fresquito, killo."
-failure_text_es = "No queda carga, miarma."
-flavor_text_es = "Ritual de barrio version arcade."
+id = "llamar_madre"
+display_name = "Call Mother"
+description = "Recover a small amount of core HP once per run."
+display_name_es = "Llamar a la madre"
+description_es = "Tu madre te grita desde la cocina. Extranamente, te sientes mejor."
+success_text_es = "Tu madre te grita desde la cocina. Extranamente, te sientes mejor."
+failure_text_es = "Ya has llamado bastante, miarma."
+flavor_text_es = "No cura la vida, pero casi."
 cost_gold = 0
-cost_room_charges = 1
-max_uses_per_run = 2
+cost_room_charges = 0
+max_uses_per_run = 1
 max_uses_per_round = 1
 benefit_tags = PackedStringArray("mvp")
-risk_tags = PackedStringArray("resource_spend")
-effect_values = {}
+risk_tags = PackedStringArray()
+effect_values = {"core_hp": 5}

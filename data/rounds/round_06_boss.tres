@@ -15,9 +15,9 @@ is_elite = false
 [sub_resource type="Resource" id="WaveStepDef_2"]
 script = ExtResource("2")
 enemy_id = "tactichandal_runner"
-count = 6
-spawn_interval = 0.9
-start_delay = 10.0
+count = 4
+spawn_interval = 1.2
+start_delay = 14.0
 path_id = "main"
 is_elite = false
 

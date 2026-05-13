@@ -27,12 +27,19 @@ ContentDB="*res://autoload/content_db.gd"
 RNGService="*res://autoload/rng_service.gd"
 SaveService="*res://autoload/save_service.gd"
 AudioService="*res://autoload/audio_service.gd"
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1600
+window/size/window_height_override=900
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
 
 [rendering]
 

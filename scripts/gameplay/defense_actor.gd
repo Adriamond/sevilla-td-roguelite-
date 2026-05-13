@@ -164,6 +164,8 @@ func _get_global_crit_chance() -> float:
 	var run_state: Node = _run_state()
 	if run_state == null:
 		return 0.0
+	if run_state.has_method("get_total_crit_chance"):
+		return float(run_state.call("get_total_crit_chance"))
 	return float(run_state.get("global_crit_chance"))
 
 func _run_state() -> Node:

@@ -1860,3 +1860,377 @@ Acceptance criteria:
 
 - Validation pipeline still passes.
 - Cleanup behavior is stricter and minimizes shutdown leak warnings without hiding output.
+
+## CR-017 - Boss and late-round balance pass
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Tune final-round boss balance so the boss remains a final threat but becomes beatable with reasonable upgraded defenses and at least one useful reward.
+
+Affected areas:
+
+- Design: final-round difficulty/readability
+- Code: narrow validation sanity check only
+- Data: boss stats and round 6 pacing
+- UI: none
+- Balance: final boss and late-round pressure only
+- Docs: CR tracking update
+
+Decision:
+
+Reduce the boss from an effectively impossible HP/speed profile to a slower, still tanky final threat, and delay/reduce round 6 runner pressure so defenses get a meaningful boss damage window.
+
+Implementation notes:
+
+- `killo_bulevar_boss` tuned:
+  - HP reduced from `1400` to `780`.
+  - speed reduced from `0.85` to `0.38`.
+  - leak damage increased from `5` to `6` to preserve final threat.
+- `round_06_boss` runner add wave tuned:
+  - runner count reduced from `6` to `4`.
+  - spawn interval increased from `0.9` to `1.2`.
+  - start delay increased from `10.0` to `14.0`.
+- Project validation now asserts the boss remains tankier than `resonante_bruiser` and slow enough for current MVP path readability.
+
+Risks:
+
+- Final balance still needs manual playtesting because real tower coverage depends heavily on pad placement and reward choices.
+
+Acceptance criteria:
+
+- Boss appears clearly in round 6.
+- Several upgraded defenses can reduce boss HP meaningfully and should be able to kill it with reasonable play.
+- Poor setup can still fail due to boss leak damage and late runner pressure.
+- Validation suite passes.
+
+## CR-018 - Add minimal room hub interactions
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Give the room hub a small gameplay role between rounds with three one-use interactions that support the tower defense run without adding exploration or meta-progression.
+
+Affected areas:
+
+- Design: minimal room/hub utility layer
+- Code: run-state tracking, room interaction resolution, room UI wiring
+- Data: existing room interaction resources repurposed/tuned for CR-018
+- UI: room screen interaction buttons/status
+- Balance: small one-use run support effects
+- Docs: CR tracking update
+
+Decision:
+
+Implement three run-limited room interactions through `RunController` and `RunState`, with UI only requesting interactions and rendering availability. Router uses the simpler next-wave crit bonus path.
+
+Implementation notes:
+
+- Added run-state tracking for `used_room_interaction_ids`.
+- Added pending/current next-wave crit bonus state for router.
+- `RunController.use_room_interaction()` owns gameplay effects:
+  - `llamar_madre`: +5 Core HP.
+  - `buscar_monedas_pantalon`: +25 gold.
+  - `reiniciar_router`: +10% crit for the next wave only.
+- `WaveController` activates pending room bonuses on wave start and clears current wave bonuses on wave completion/force-complete.
+- Room screen now shows three interaction buttons/cards, status, and result text.
+- Flow smoke validates interaction effects, duplicate-use prevention, router pending crit, and reset on new run.
+
+Risks:
+
+- Router is intentionally implemented as a simple temporary combat modifier instead of reward reroll UI.
+
+Acceptance criteria:
+
+- Room displays three interactions.
+- Each interaction can be used once per run and then becomes unavailable.
+- Continue still enters Build Phase.
+- Used state persists across rounds and resets on new run.
+- Validation suite passes.
+
+## CR-V2 - Room hub visual blockout and asset pipeline baseline
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Make the room hub feel like part of the MVP fantasy by adding a readable bedroom blockout and establishing a simple asset pipeline baseline.
+
+Affected areas:
+
+- Design: room hub visual blockout
+- Code: hotspot wiring in room screen controller
+- Data: none
+- UI: 1600x900 runtime baseline and room hub layout
+- Balance: none
+- Docs: asset pipeline and CR tracking
+
+Decision:
+
+Use Godot-generated placeholder primitives for the room hub and avoid importing external assets for this CR.
+
+Implementation notes:
+
+- Runtime viewport updated to `1600x900`.
+- Room hub now includes wall/floor, bed, desk, monitor, router, chair/pants, phone/door, status panel, interaction panel, and Continue button.
+- Existing interactions can be triggered from spatial hotspots:
+  - phone/door: `llamar_madre`
+  - pants/chair: `buscar_monedas_pantalon`
+  - router: `reiniciar_router`
+- Existing interaction cards remain as fallback controls.
+- Used interactions disable both cards and hotspots.
+- Added asset folders and licensing notes:
+  - `assets/placeholder/`
+  - `assets/room/`
+  - `assets/ui/`
+  - `assets/licenses/`
+  - `docs/assets_pipeline.md`
+
+Risks:
+
+- This is a layout blockout only; final art direction, animation, and room exploration remain future scope.
+
+Acceptance criteria:
+
+- Runtime opens at a readable `1600x900`.
+- Room hub visually reads as a bedroom blockout.
+- Router, pants, and phone/door hotspots trigger the existing interactions.
+- Continue still enters Build Phase.
+- Existing validation suite passes.
+
+## CR-V2B - Fix room hub framing and placeholder visual quality
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Improve the room hub presentation after the first blockout by fixing framing/composition and replacing low-quality-looking placeholder imagery with cleaner Godot-native shapes.
+
+Affected areas:
+
+- Design: room composition and readable bedroom silhouettes
+- Code: hotspot visual state update only
+- Data: none
+- UI: room hub layout and hotspot clarity
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep the current room interaction gameplay unchanged and improve the 1600x900 room scene using flat, coherent Godot-drawn placeholder geometry instead of raster assets.
+
+Implementation notes:
+
+- Reframed `room_hub.tscn` for a clearer 1600x900 composition with reserved UI corners and a central room play space.
+- Rebuilt furniture/prop silhouettes with simple ColorRect layers: wall/floor, bed, desk/monitor, chair/pants, router, phone and door.
+- Moved fallback interaction cards to the top-right and action/status panels to left-side safe zones so they do not cover key props.
+- Added hotspot highlight frames for phone/door, pants and router.
+- Used interactions now gray out both the hotspot button and its highlight frame.
+- No gameplay effects, tower defense mechanics, rewards or room interaction rules changed.
+
+Risks:
+
+- This remains placeholder blockout art; final illustration, animation and richer room exploration are future scope.
+
+Acceptance criteria:
+
+- Room is better framed at `1600x900`.
+- Props and hotspots remain visible and readable.
+- Used interactions are visibly marked.
+- Continue and fallback controls remain accessible.
+- Validation suite passes.
+
+## CR-V2C - Isolate room screen from gameplay HUD and clean room presentation
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Make the Room hub read as a standalone between-round screen instead of being visually mixed with gameplay/build HUD panels.
+
+Affected areas:
+
+- Design: screen-state clarity and room presentation isolation
+- Code: gameplay presentation visibility API and boot routing usage
+- Data: none
+- UI: Room/Gameplay/Reward visual separation
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep `GameplayRoot` alive for run lifecycle, but explicitly hide its gameplay presentation layer whenever Room or Reward overlays are shown.
+
+Implementation notes:
+
+- Added `GameplayRootController.set_gameplay_presentation_visible()` to hide/show both the gameplay root and its `CanvasLayer` HUD.
+- Added `GameplayRootController.is_gameplay_presentation_visible()` for deterministic smoke validation.
+- Updated `BootController._set_gameplay_visible()` to use the explicit presentation API instead of only setting the root node visibility.
+- Extended flow smoke validation to assert:
+  - gameplay runtime exists behind Room;
+  - gameplay presentation is hidden in Room;
+  - gameplay presentation is visible in Build Phase;
+  - gameplay presentation hides again after Reward returns to Room;
+  - gameplay presentation returns after Continue into the next Build Phase.
+- No gameplay lifecycle, room effects, reward mechanics or tower-defense behavior changed.
+
+Risks:
+
+- This relies on the current `UILayer` CanvasLayer name in `gameplay_root.tscn`; future HUD restructuring should preserve or update the presentation API.
+
+Acceptance criteria:
+
+- Room displays without gameplay HUD panels.
+- Gameplay runtime remains alive behind Room/Reward where required.
+- Build/Wave presentation returns correctly after Continue.
+- Validation suite passes.
+
+## CR-V2C-FIX - Fit RoomHub cleanly inside 1600x900 viewport and remove clipping
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Fix RoomHub viewport fit after HUD isolation so the room renders fully inside the 1600x900 game window without right/bottom clipping or off-screen panels.
+
+Affected areas:
+
+- Design: RoomHub framing and viewport-safe composition
+- Code: room controller viewport-fit helper and project validation bounds check
+- Data: none
+- UI: RoomHub screen fit only
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Keep the existing room concept and interaction flow, but treat RoomHub as a designed `1600x900` canvas that scales and centers safely inside the actual viewport.
+
+Implementation notes:
+
+- Added `RoomScreenController.DESIGN_SIZE = 1600x900`.
+- RoomHub now fits itself to the active viewport on ready, on show, and on viewport resize.
+- Added `get_designed_content_rect()` for non-visual validation of fitted bounds.
+- Added project window size overrides matching the 1600x900 viewport baseline.
+- Extended `validate_project.gd` with a RoomHub viewport-fit check that instantiates the room, lets it fit, and asserts the designed content rect remains within viewport bounds.
+- No room interaction effects, gameplay lifecycle, rewards, tower-defense mechanics or balance changed.
+
+Risks:
+
+- The validation checks bounds rather than screenshot composition; manual visual review is still required for taste/framing.
+
+Acceptance criteria:
+
+- RoomHub content fits inside the active viewport.
+- Right interaction panel and Continue button remain visible.
+- Gameplay HUD remains hidden in Room through the existing CR-V2C presentation visibility path.
+- Validation suite passes.
+
+## CR-V2C-FIX2 - Move RoomHub internal UI/content inside 1600x900 design canvas and validate actual node bounds
+
+Status: implemented
+Date: 2026-05-04
+
+Requester intent:
+
+Fix the actual RoomHub child-node layout after manual screenshots showed the previous canvas-fit validation could still pass while real panels/buttons were clipped.
+
+Affected areas:
+
+- Design: RoomHub internal composition and safe margins
+- Code: room fit behavior and stricter project validation
+- Data: none
+- UI: RoomHub panel/hotspot placement only
+- Balance: none
+- Docs: CR tracking update
+
+Decision:
+
+Move the real RoomHub UI/content nodes into conservative safe bounds inside the `1600x900` design canvas, stop centering the canvas inside debug viewport chrome, and validate named node bounds directly.
+
+Implementation notes:
+
+- RoomHub fitting now anchors the design canvas at top-left and caps scale at `1.0` to avoid artificial grey margins or scaled-up clipping.
+- Moved right-side interaction panel from the extreme right edge into a safer x range.
+- Moved phone/door hotspot and door prop leftward to keep labels/buttons fully visible.
+- Moved bottom action/message/Continue panel upward to keep the Continue button away from bottom clipping.
+- Moved pants/chair hotspot upward for bottom safety.
+- `validate_project.gd` now checks actual global rects for key RoomHub nodes:
+  - `InteractionPanel`
+  - `ActionPanel`
+  - `ContinueButton`
+  - `RoomMessageLabel`
+  - status panel
+  - all three hotspot buttons and frames
+- Validation also enforces extra right/bottom safety margins for the previously clipped nodes.
+- No room interaction effects, gameplay lifecycle, rewards, combat or balance changed.
+
+Risks:
+
+- Validation now catches geometric clipping risks, but final presentation quality still depends on manual screenshot review.
+
+Acceptance criteria:
+
+- Key RoomHub UI nodes are inside `1600x900` design bounds.
+- Right panel and bottom Continue area use conservative safe margins.
+- Validation suite passes.
+
+## CR-WORKFLOW-MCP - Document Godot AI MCP usage rules for live-editor inspection and controlled scene automation
+
+Status: implemented
+Date: 2026-05-13
+
+Requester intent:
+
+Update the project workflow after CR-MCP-0 so Godot AI MCP can help with live editor inspection and scene/layout debugging without weakening small-CR discipline or allowing uncontrolled editor writes.
+
+Affected areas:
+
+- Design: workflow/process governance only
+- Code: none
+- Data: none
+- UI: none
+- Balance: none
+- Docs: workflow, lifecycle, CR template, agent rules, CR tracking
+
+Decision:
+
+Document Godot AI MCP as an optional tool with explicit safety levels, read-only-first guidance, no-writes-while-playing rules, reporting requirements, and visual CR acceptance limits.
+
+Implementation notes:
+
+- `docs/current_workflow.md` now defines:
+  - MCP role as supplemental to repo search, validation and manual testing.
+  - native MCP tool mode vs direct JSON-RPC fallback.
+  - CR-MCP-0 version mismatch caveat (`2.4.3` session metadata vs `3.2.4` initialize metadata).
+  - Level 0 through Level 3 safety rules.
+  - read-only-first policy for visual/layout CRs.
+  - no MCP writes while the editor is playing.
+  - `project_run` autosave caution.
+  - per-CR MCP reporting requirements.
+  - visual acceptance rule requiring validation plus manual/screenshot confirmation.
+- `docs/next_cr_template.md` now includes MCP usage, screenshot, visual acceptance, and editor-state requirement fields.
+- `docs/lifecycle_rules.md` notes that MCP inspection does not change lifecycle ownership rules.
+- `AGENTS.md` points agents to the MCP workflow rules and summarizes high-risk MCP restrictions.
+- No gameplay logic, scenes, scripts, validation scripts, project settings, resources, or addon files were changed for this CR.
+
+Risks:
+
+- MCP native tool availability may vary by Codex session; direct JSON-RPC remains documented as a fallback.
+
+Acceptance criteria:
+
+- Workflow docs explain Godot AI MCP role and limits.
+- Native MCP vs direct JSON-RPC fallback is documented.
+- No-writes-while-playing and `project_run` autosave cautions are documented.
+- Future CR template includes MCP and visual screenshot fields.
+- Small-CR workflow remains unchanged.
+- Validation suite passes.
