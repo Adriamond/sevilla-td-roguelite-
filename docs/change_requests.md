@@ -2504,3 +2504,45 @@ Acceptance criteria:
 - Gameplay HUD, reward cards and room text are larger/higher contrast than before.
 - No project/stretch settings or gameplay mechanics changed.
 - Manual Play/F5 readability review remains required before merge.
+
+## CR-SMOKE-CAMERA-BIGMAP - Extend big-map camera and overlay smoke validation
+
+Status: implemented
+Date: 2026-05-14
+
+Requester intent:
+
+Strengthen deterministic flow smoke coverage after the large-map experiment was merged and manually accepted, so future CRs do not accidentally break camera pan/zoom, build interactions after camera movement, or Room/Reward screen-space overlays.
+
+Affected areas:
+
+- Code: flow smoke validation only
+- Validation: big-map camera/debug API and overlay screen-space checks
+- Docs: CR tracking update
+- Gameplay mechanics: none
+- Balance: none
+
+Decision:
+
+Keep gameplay, map geometry, UI design and balance unchanged, and extend `validate_flow_smoke.gd` to exercise the existing camera debug API inside the live boot/gameplay flow before building defenses.
+
+Implementation notes:
+
+- Godot AI MCP read-only inspection succeeded against the open editor session.
+- The editor was playing `res://scenes/gameplay/gameplay_root.tscn`, so no MCP write actions or editor saves were used.
+- Flow smoke now verifies the gameplay camera exists, has sane zoom bounds, exposes valid map/clamp/safe-area rects, clamps max/min debug zoom, and keeps the safe world rect inside clamp bounds after large positive/negative debug pans.
+- Existing build smoke now runs after camera pan/zoom, so manguerazo/cable_pelao build and selection paths are covered after camera movement.
+- Flow smoke now checks Room and Reward overlays are parented under a `CanvasLayer` instead of the moving gameplay world, and that gameplay presentation is hidden when Room owns the screen.
+- No tower stats, enemy/wave logic, reward effects, room interactions, map geometry, addons, or gameplay features were changed.
+
+Risks:
+
+- The smoke uses controller/debug APIs rather than pixel or real mouse-click assertions, so manual Play/F5 remains the acceptance path for subjective camera feel.
+
+Acceptance criteria:
+
+- `run_validation.ps1` passes.
+- Flow smoke covers big-map camera pan/zoom/clamp sanity.
+- Flow smoke builds/selects defenses after camera movement.
+- Flow smoke validates Room/Reward screen-space overlay assumptions where practical.
+- Existing gameplay behavior remains unchanged.

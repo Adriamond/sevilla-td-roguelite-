@@ -227,6 +227,8 @@ func _validate_runtime_persistence() -> bool:
 		return false
 	if not _assert_true(not bool(gameplay_in_room.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be hidden while Room screen is displayed."):
 		return false
+	if not _validate_overlay_screen_space(boot, "Room"):
+		return false
 
 	boot.call("_on_room_continue_requested")
 	await process_frame
@@ -254,6 +256,8 @@ func _validate_runtime_persistence() -> bool:
 	if not _assert_true(String(gameplay.call("get_phase_name")) == "BUILD_PHASE", "Expected gameplay phase to be Build Phase after Continue."):
 		return false
 	if not _assert_true(int(gameplay.call("get_total_rounds")) == 6, "Expected gameplay controller to expose total rounds=6 in MVP."):
+		return false
+	if not _validate_bigmap_camera_workflow(gameplay):
 		return false
 	if not _assert_true(bool(gameplay.call("build_debug_first_pad_with", "manguerazo")), "Expected to build first manguerazo in build phase."):
 		return false
@@ -384,6 +388,8 @@ func _validate_runtime_persistence() -> bool:
 
 	boot.call("_on_force_complete_wave_requested")
 	await process_frame
+	if not _validate_overlay_screen_space(boot, "Reward"):
+		return false
 	boot.call("_on_reward_chosen", "litrito")
 	await process_frame
 	if not _assert_true(not bool(gameplay.call("is_gameplay_presentation_visible")), "Expected gameplay presentation to be hidden after reward returns to Room."):
@@ -423,6 +429,132 @@ func _validate_runtime_persistence() -> bool:
 	await process_frame
 	await process_frame
 	return true
+
+func _validate_bigmap_camera_workflow(gameplay: Node) -> bool:
+	if gameplay == null:
+		_fail("Expected gameplay root for big-map camera smoke validation.")
+		return false
+	if not gameplay.has_method("ensure_map_loaded_for_debug"):
+		_fail("Gameplay root missing map-load debug API for big-map camera smoke validation.")
+		return false
+	if not bool(gameplay.call("ensure_map_loaded_for_debug")):
+		_fail("Gameplay root could not load map for big-map camera smoke validation.")
+		return false
+	if not gameplay.has_method("get_camera_navigation_debug_state") \
+		or not gameplay.has_method("set_camera_zoom_for_debug") \
+		or not gameplay.has_method("move_camera_for_debug"):
+		_fail("Gameplay root missing camera navigation debug API for big-map camera smoke validation.")
+		return false
+
+	var state: Dictionary = gameplay.call("get_camera_navigation_debug_state")
+	if not _assert_true(bool(state.get("camera_exists", false)), "Expected gameplay camera to exist for big-map smoke validation."):
+		return false
+	if not _assert_true(bool(state.get("camera_enabled", false)), "Expected gameplay camera to be current/enabled for big-map smoke validation."):
+		return false
+
+	var min_zoom: float = float(state.get("min_zoom", 0.0))
+	var max_zoom: float = float(state.get("max_zoom", 0.0))
+	if not _assert_true(min_zoom > 0.0 and max_zoom > min_zoom, "Expected sane camera zoom bounds for big-map smoke validation."):
+		return false
+
+	var map_bounds: Rect2 = state.get("map_world_bounds", Rect2())
+	if not _assert_true(_rect_has_valid_size(map_bounds), "Expected valid map world bounds for big-map smoke validation."):
+		return false
+	var clamp_bounds: Rect2 = state.get("clamp_bounds", Rect2())
+	if not _assert_true(_rect_has_valid_size(clamp_bounds), "Expected valid camera clamp bounds for big-map smoke validation."):
+		return false
+	if not _assert_true(_rect_contains_rect(clamp_bounds, map_bounds), "Expected camera clamp bounds to contain map world bounds."):
+		return false
+	var safe_screen_rect: Rect2 = state.get("safe_screen_rect", Rect2())
+	if not _assert_true(_rect_has_valid_size(safe_screen_rect), "Expected valid camera safe screen rect for big-map smoke validation."):
+		return false
+	var safe_world_rect: Rect2 = state.get("safe_world_rect", Rect2())
+	if not _assert_true(_rect_has_valid_size(safe_world_rect), "Expected valid camera safe world rect before pan/zoom."):
+		return false
+
+	gameplay.call("set_camera_zoom_for_debug", max_zoom * 10.0)
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if not _assert_true(float(state.get("current_zoom", 0.0)) <= max_zoom + 0.001, "Expected debug camera zoom to clamp at max."):
+		return false
+	if not _assert_true(_camera_state_is_finite(state), "Expected finite camera state after max zoom clamp."):
+		return false
+
+	gameplay.call("set_camera_zoom_for_debug", min_zoom * 0.1)
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if not _assert_true(float(state.get("current_zoom", 0.0)) >= min_zoom - 0.001, "Expected debug camera zoom to clamp at min."):
+		return false
+	if not _assert_true(_camera_state_is_finite(state), "Expected finite camera state after min zoom clamp."):
+		return false
+
+	gameplay.call("set_camera_zoom_for_debug", 1.15)
+	gameplay.call("move_camera_for_debug", Vector2(100000.0, 100000.0))
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if not _assert_true(_camera_state_is_finite(state), "Expected finite camera state after positive debug pan."):
+		return false
+	if not _assert_true(_rect_contains_rect(state.get("clamp_bounds", Rect2()), state.get("safe_world_rect", Rect2())), "Expected safe world rect to stay inside clamp bounds after positive debug pan."):
+		return false
+
+	gameplay.call("move_camera_for_debug", Vector2(-200000.0, -200000.0))
+	state = gameplay.call("get_camera_navigation_debug_state")
+	if not _assert_true(_camera_state_is_finite(state), "Expected finite camera state after negative debug pan."):
+		return false
+	if not _assert_true(_rect_contains_rect(state.get("clamp_bounds", Rect2()), state.get("safe_world_rect", Rect2())), "Expected safe world rect to stay inside clamp bounds after negative debug pan."):
+		return false
+
+	return true
+
+func _validate_overlay_screen_space(boot: Node, expected_screen_name: String) -> bool:
+	if boot == null:
+		_fail("Expected boot node for %s overlay screen-space validation." % expected_screen_name)
+		return false
+	var overlay_layer: Node = boot.get("_overlay_layer") as Node
+	var overlay_screen: Node = boot.get("_overlay_screen") as Node
+	if not _assert_true(overlay_layer != null, "Expected %s overlay layer to exist." % expected_screen_name):
+		return false
+	if not _assert_true(overlay_layer is CanvasLayer, "Expected %s overlay layer to be a CanvasLayer." % expected_screen_name):
+		return false
+	if not _assert_true(overlay_screen != null, "Expected %s overlay screen to exist." % expected_screen_name):
+		return false
+	if not _assert_true(overlay_screen.get_parent() == overlay_layer, "Expected %s overlay screen to be parented under overlay CanvasLayer." % expected_screen_name):
+		return false
+	var gameplay: Node = boot.get("_gameplay_screen") as Node
+	if gameplay != null:
+		if not _assert_true(not gameplay.is_ancestor_of(overlay_screen), "Expected %s overlay to not be parented under moving gameplay world." % expected_screen_name):
+			return false
+	if overlay_screen is Control:
+		var screen_rect: Rect2 = (overlay_screen as Control).get_global_rect()
+		if not _assert_true(_rect_has_valid_size(screen_rect), "Expected %s overlay Control rect to have valid size." % expected_screen_name):
+			return false
+	return true
+
+func _camera_state_is_finite(state: Dictionary) -> bool:
+	var position: Vector2 = state.get("camera_position", Vector2.ZERO)
+	var safe_world_rect: Rect2 = state.get("safe_world_rect", Rect2())
+	var clamp_bounds: Rect2 = state.get("clamp_bounds", Rect2())
+	return _vector_is_finite(position) \
+		and _float_is_finite(float(state.get("current_zoom", 0.0))) \
+		and _rect_is_finite(safe_world_rect) \
+		and _rect_is_finite(clamp_bounds)
+
+func _rect_contains_rect(outer: Rect2, inner: Rect2) -> bool:
+	if not _rect_has_valid_size(outer) or not _rect_has_valid_size(inner):
+		return false
+	return inner.position.x >= outer.position.x - 0.5 \
+		and inner.position.y >= outer.position.y - 0.5 \
+		and inner.end.x <= outer.end.x + 0.5 \
+		and inner.end.y <= outer.end.y + 0.5
+
+func _rect_has_valid_size(rect: Rect2) -> bool:
+	return _rect_is_finite(rect) and rect.size.x > 0.0 and rect.size.y > 0.0
+
+func _rect_is_finite(rect: Rect2) -> bool:
+	return _vector_is_finite(rect.position) and _vector_is_finite(rect.size)
+
+func _vector_is_finite(value: Vector2) -> bool:
+	return _float_is_finite(value.x) and _float_is_finite(value.y)
+
+func _float_is_finite(value: float) -> bool:
+	return value == value and absf(value) < INF
 
 func _validate_room_interactions(run_controller: Node, run_state: Node) -> bool:
 	var base_core_hp: int = int(run_state.get("core_hp"))
