@@ -20,24 +20,101 @@ script = ExtResource("1")
 color = Color(0.045, 0.075, 0.105, 1)
 polygon = PackedVector2Array(0, 0, 3000, 0, 3000, 1450, 0, 1450)
 
+[node name="AlamedaPavementBase" type="Polygon2D" parent="."]
+z_index = 0
+color = Color(0.13, 0.12, 0.095, 0.92)
+polygon = PackedVector2Array(0, 0, 3000, 0, 3000, 1450, 0, 1450)
+
+[node name="AlamedaPavementStripe01" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 160, 3000, 160)
+
+[node name="AlamedaPavementStripe02" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 340, 3000, 340)
+
+[node name="AlamedaPavementStripe03" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 520, 3000, 520)
+
+[node name="AlamedaPavementStripe04" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 700, 3000, 700)
+
+[node name="AlamedaPavementStripe05" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 880, 3000, 880)
+
+[node name="AlamedaPavementStripe06" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 1060, 3000, 1060)
+
+[node name="AlamedaPavementStripe07" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.78, 0.68, 0.46, 0.2)
+width = 10.0
+points = PackedVector2Array(0, 1240, 3000, 1240)
+
+[node name="AlamedaPavementAxis01" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.22, 0.2, 0.16, 0.35)
+width = 16.0
+points = PackedVector2Array(260, 0, 260, 1450)
+
+[node name="AlamedaPavementAxis02" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.22, 0.2, 0.16, 0.35)
+width = 16.0
+points = PackedVector2Array(820, 0, 820, 1450)
+
+[node name="AlamedaPavementAxis03" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.22, 0.2, 0.16, 0.35)
+width = 16.0
+points = PackedVector2Array(1380, 0, 1380, 1450)
+
+[node name="AlamedaPavementAxis04" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.22, 0.2, 0.16, 0.35)
+width = 16.0
+points = PackedVector2Array(1940, 0, 1940, 1450)
+
+[node name="AlamedaPavementAxis05" type="Line2D" parent="."]
+z_index = 0
+default_color = Color(0.22, 0.2, 0.16, 0.35)
+width = 16.0
+points = PackedVector2Array(2500, 0, 2500, 1450)
+
 [node name="DistrictBlockA" type="Polygon2D" parent="."]
-color = Color(0.065, 0.1, 0.13, 1)
+color = Color(0.065, 0.1, 0.13, 0.72)
 polygon = PackedVector2Array(90, 90, 760, 90, 760, 390, 90, 390)
 
 [node name="DistrictBlockB" type="Polygon2D" parent="."]
-color = Color(0.055, 0.115, 0.12, 1)
+color = Color(0.055, 0.115, 0.12, 0.72)
 polygon = PackedVector2Array(1110, 90, 1880, 90, 1880, 410, 1110, 410)
 
 [node name="DistrictBlockC" type="Polygon2D" parent="."]
-color = Color(0.08, 0.075, 0.12, 1)
+color = Color(0.08, 0.075, 0.12, 0.72)
 polygon = PackedVector2Array(2040, 780, 2910, 780, 2910, 1340, 2040, 1340)
 
 [node name="ParkBlock" type="Polygon2D" parent="."]
-color = Color(0.04, 0.13, 0.095, 1)
+color = Color(0.04, 0.13, 0.095, 0.72)
 polygon = PackedVector2Array(160, 620, 440, 620, 440, 910, 160, 910)
 
 [node name="ConstructionBlock" type="Polygon2D" parent="."]
-color = Color(0.12, 0.085, 0.045, 1)
+color = Color(0.12, 0.085, 0.045, 0.72)
 polygon = PackedVector2Array(1520, 790, 1940, 790, 1940, 1180, 1520, 1180)
 
 [node name="MainPath" type="Path2D" parent="."]
@@ -110,6 +187,161 @@ offset_right = 2896.0
 offset_bottom = 294.0
 text = "END"
 theme_override_colors/font_color = Color(1, 0.88, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="AlamedaColumns" type="Node2D" parent="."]
+z_index = 6
+
+[node name="ColumnNorthLeft" type="Node2D" parent="AlamedaColumns"]
+position = Vector2(1540, 160)
+
+[node name="Base" type="Polygon2D" parent="AlamedaColumns/ColumnNorthLeft"]
+color = Color(0.86, 0.78, 0.6, 1)
+polygon = PackedVector2Array(-34, 52, 34, 52, 42, 70, -42, 70)
+
+[node name="Shaft" type="Polygon2D" parent="AlamedaColumns/ColumnNorthLeft"]
+color = Color(0.74, 0.68, 0.54, 1)
+polygon = PackedVector2Array(-18, -70, 18, -70, 18, 54, -18, 54)
+
+[node name="ShaftHighlight" type="Line2D" parent="AlamedaColumns/ColumnNorthLeft"]
+default_color = Color(1, 0.92, 0.72, 0.45)
+width = 4.0
+points = PackedVector2Array(-7, -62, -7, 48)
+
+[node name="Capital" type="Polygon2D" parent="AlamedaColumns/ColumnNorthLeft"]
+color = Color(0.9, 0.82, 0.62, 1)
+polygon = PackedVector2Array(-38, -88, 38, -88, 30, -68, -30, -68)
+
+[node name="ColumnNorthRight" type="Node2D" parent="AlamedaColumns"]
+position = Vector2(1700, 160)
+
+[node name="Base" type="Polygon2D" parent="AlamedaColumns/ColumnNorthRight"]
+color = Color(0.86, 0.78, 0.6, 1)
+polygon = PackedVector2Array(-34, 52, 34, 52, 42, 70, -42, 70)
+
+[node name="Shaft" type="Polygon2D" parent="AlamedaColumns/ColumnNorthRight"]
+color = Color(0.74, 0.68, 0.54, 1)
+polygon = PackedVector2Array(-18, -70, 18, -70, 18, 54, -18, 54)
+
+[node name="ShaftHighlight" type="Line2D" parent="AlamedaColumns/ColumnNorthRight"]
+default_color = Color(1, 0.92, 0.72, 0.45)
+width = 4.0
+points = PackedVector2Array(-7, -62, -7, 48)
+
+[node name="Capital" type="Polygon2D" parent="AlamedaColumns/ColumnNorthRight"]
+color = Color(0.9, 0.82, 0.62, 1)
+polygon = PackedVector2Array(-38, -88, 38, -88, 30, -68, -30, -68)
+
+[node name="ColumnSouthLeft" type="Node2D" parent="AlamedaColumns"]
+position = Vector2(1540, 1120)
+
+[node name="Base" type="Polygon2D" parent="AlamedaColumns/ColumnSouthLeft"]
+color = Color(0.86, 0.78, 0.6, 1)
+polygon = PackedVector2Array(-34, 52, 34, 52, 42, 70, -42, 70)
+
+[node name="Shaft" type="Polygon2D" parent="AlamedaColumns/ColumnSouthLeft"]
+color = Color(0.74, 0.68, 0.54, 1)
+polygon = PackedVector2Array(-18, -70, 18, -70, 18, 54, -18, 54)
+
+[node name="ShaftHighlight" type="Line2D" parent="AlamedaColumns/ColumnSouthLeft"]
+default_color = Color(1, 0.92, 0.72, 0.45)
+width = 4.0
+points = PackedVector2Array(-7, -62, -7, 48)
+
+[node name="Capital" type="Polygon2D" parent="AlamedaColumns/ColumnSouthLeft"]
+color = Color(0.9, 0.82, 0.62, 1)
+polygon = PackedVector2Array(-38, -88, 38, -88, 30, -68, -30, -68)
+
+[node name="ColumnSouthRight" type="Node2D" parent="AlamedaColumns"]
+position = Vector2(1700, 1120)
+
+[node name="Base" type="Polygon2D" parent="AlamedaColumns/ColumnSouthRight"]
+color = Color(0.86, 0.78, 0.6, 1)
+polygon = PackedVector2Array(-34, 52, 34, 52, 42, 70, -42, 70)
+
+[node name="Shaft" type="Polygon2D" parent="AlamedaColumns/ColumnSouthRight"]
+color = Color(0.74, 0.68, 0.54, 1)
+polygon = PackedVector2Array(-18, -70, 18, -70, 18, 54, -18, 54)
+
+[node name="ShaftHighlight" type="Line2D" parent="AlamedaColumns/ColumnSouthRight"]
+default_color = Color(1, 0.92, 0.72, 0.45)
+width = 4.0
+points = PackedVector2Array(-7, -62, -7, 48)
+
+[node name="Capital" type="Polygon2D" parent="AlamedaColumns/ColumnSouthRight"]
+color = Color(0.9, 0.82, 0.62, 1)
+polygon = PackedVector2Array(-38, -88, 38, -88, 30, -68, -30, -68)
+
+[node name="BottleCapProps" type="Node2D" parent="."]
+z_index = 7
+
+[node name="BottleCap01" type="Node2D" parent="BottleCapProps"]
+position = Vector2(350, 240)
+rotation = -0.18
+
+[node name="CapShape" type="Polygon2D" parent="BottleCapProps/BottleCap01"]
+color = Color(0.78, 0.04, 0.035, 1)
+polygon = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CapRim" type="Line2D" parent="BottleCapProps/BottleCap01"]
+default_color = Color(1, 0.78, 0.66, 0.7)
+width = 4.0
+closed = true
+points = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CiLabel" type="Label" parent="BottleCapProps/BottleCap01"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 18.0
+offset_bottom = 13.0
+text = "Ci"
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="BottleCap02" type="Node2D" parent="BottleCapProps"]
+position = Vector2(1330, 860)
+rotation = 0.22
+
+[node name="CapShape" type="Polygon2D" parent="BottleCapProps/BottleCap02"]
+color = Color(0.78, 0.04, 0.035, 1)
+polygon = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CapRim" type="Line2D" parent="BottleCapProps/BottleCap02"]
+default_color = Color(1, 0.78, 0.66, 0.7)
+width = 4.0
+closed = true
+points = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CiLabel" type="Label" parent="BottleCapProps/BottleCap02"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 18.0
+offset_bottom = 13.0
+text = "Ci"
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="BottleCap03" type="Node2D" parent="BottleCapProps"]
+position = Vector2(2360, 1000)
+rotation = -0.08
+
+[node name="CapShape" type="Polygon2D" parent="BottleCapProps/BottleCap03"]
+color = Color(0.78, 0.04, 0.035, 1)
+polygon = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CapRim" type="Line2D" parent="BottleCapProps/BottleCap03"]
+default_color = Color(1, 0.78, 0.66, 0.7)
+width = 4.0
+closed = true
+points = PackedVector2Array(34, 0, 28, 20, 10, 32, -10, 32, -28, 20, -34, 0, -28, -20, -10, -32, 10, -32, 28, -20)
+
+[node name="CiLabel" type="Label" parent="BottleCapProps/BottleCap03"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 18.0
+offset_bottom = 13.0
+text = "Ci"
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
 theme_override_font_sizes/font_size = 18
 
 [node name="BuildPads" type="Node2D" parent="."]

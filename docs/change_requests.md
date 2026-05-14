@@ -2546,3 +2546,102 @@ Acceptance criteria:
 - Flow smoke builds/selects defenses after camera movement.
 - Flow smoke validates Room/Reward screen-space overlay assumptions where practical.
 - Existing gameplay behavior remains unchanged.
+
+## CR-BIGMAP-BALANCE-1 - First early-round balance pass for large-map tower ranges, costs, rewards, and pacing
+
+Status: implemented
+Date: 2026-05-14
+
+Requester intent:
+
+Make the manually accepted large-map MVP feel basically playable in early rounds without adding mechanics, redesigning the map, changing camera behavior, or touching Room/Reward flow.
+
+Affected areas:
+
+- Data: `manguerazo`, `cable_pelao`, early runner, round 1 pacing
+- Balance: first small large-map readability/playability pass
+- Docs: CR tracking update
+- Code: none
+- UI: none
+
+Decision:
+
+Keep the two-defense identities but scale their ranges for the larger map footprint and make round 1 a gentler readability check.
+
+Implementation notes:
+
+- `manguerazo` is now the cheaper, reliable early tower:
+  - cost reduced from `56` to `48`
+  - damage nudged from `13` to `12`
+  - fire rate nudged from `1.0/s` to `1.05/s`
+  - range increased from `74` to `132` for large-map pad/corridor scale
+- `cable_pelao` is now a more expensive, stronger close-range option:
+  - cost increased from `48` to `68`
+  - damage increased from `6` to `7`
+  - fire rate increased from `2.5/s` to `3.0/s`
+  - range increased from `52` to `96`, staying shorter than `manguerazo`
+- `tactichandal_runner` early pressure was softened:
+  - HP reduced from `64` to `56`
+  - speed reduced from `1.3` to `1.15`
+- Round 1 pacing was eased:
+  - runner count reduced from `8` to `7`
+  - spawn interval increased from `1.35s` to `1.55s`
+- Starting gold, kill gold, rewards, pad placement, map geometry, camera controls, Room/Reward flow and mechanics were not changed.
+
+Risks:
+
+- This is still a first-pass data tune; manual Play/F5 is required to judge whether early large-map combat feels right.
+- Later rounds may need a separate pass after early-round feel is accepted.
+
+Acceptance criteria:
+
+- `run_validation.ps1` passes.
+- Round 1 is more forgiving with sensible `manguerazo` placement.
+- `cable_pelao` is useful near bends/chokepoints but no longer the cheaper default.
+- Tower ranges better match current large-map pad/path scale.
+- No new mechanics are added.
+
+## CR-ART-PIPELINE-1 - Create first Alameda de Hercules visual slice with iconic pavement, columns, and red 'Ci' bottle-cap props
+
+Status: implemented
+Date: 2026-05-14
+
+Requester intent:
+
+Start focusing the first Sevilla-specific scenario around Alameda de Hercules with a small, legally clean visual identity slice using only three iconic elements.
+
+Affected areas:
+
+- Scene: Pino Montano/large map visual blockout only
+- Assets/docs: placeholder Alameda asset folder and license note
+- Validation: map contract checks for required Alameda visual nodes
+- Gameplay mechanics: none
+- Balance: none
+
+Decision:
+
+Use lightweight Godot-native primitives instead of importing art assets, and establish the first Alameda visual language through stylized pavement patterning, column landmark props, and fictional red bottle-cap props with a white `Ci` mark.
+
+Implementation notes:
+
+- Added `assets/art/alameda/README.md` describing the primitive-only placeholder slice.
+- Added `assets/licenses/alameda_placeholder_assets.md` documenting that no third-party imagery/logo/font/brand asset was imported.
+- Updated `docs/assets_pipeline.md` with the no-real-brand rule for the bottle-cap props.
+- Updated `pino_montano_map.tscn` with:
+  - muted Alameda-style pavement base, horizontal stripes and axis bands;
+  - four simple column props built from `Polygon2D` and `Line2D`;
+  - three red bottle-cap props using a fictional `Ci` label only.
+- Added project validation checks so the Alameda pavement, columns, bottle caps and `Ci` labels remain present.
+- No gameplay, camera, reward, room, enemy, defense, balance, pathfinding, wall or minimap behavior changed.
+
+Risks:
+
+- This is still blockout art, not final Alameda art direction.
+- Manual Play/F5 is required to judge whether the props are recognizable at camera zoom levels.
+
+Acceptance criteria:
+
+- `run_validation.ps1` passes.
+- The map includes visible Alameda-inspired pavement, columns and red `Ci` bottle-cap props.
+- No real Cruzcampo or other commercial beer brand/logo is used directly.
+- Existing gameplay remains unchanged.

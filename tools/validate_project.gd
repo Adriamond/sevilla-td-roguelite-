@@ -712,6 +712,31 @@ func _validate_map_runtime_contracts(content_db: Node) -> Dictionary:
 			print("Map ", map_id, ": CorridorVisual end does not match MainPath end.")
 			return {"ok": false}
 
+		var alameda_required_nodes: Array[String] = [
+			"AlamedaPavementBase",
+			"AlamedaColumns/ColumnNorthLeft",
+			"AlamedaColumns/ColumnNorthRight",
+			"AlamedaColumns/ColumnSouthLeft",
+			"AlamedaColumns/ColumnSouthRight",
+			"BottleCapProps/BottleCap01",
+			"BottleCapProps/BottleCap02",
+			"BottleCapProps/BottleCap03"
+		]
+		for required_node_path: String in alameda_required_nodes:
+			if map_root.get_node_or_null(required_node_path) == null:
+				print("Map ", map_id, ": missing Alameda visual slice node ", required_node_path)
+				return {"ok": false}
+		var bottle_cap_labels: Array[String] = [
+			"BottleCapProps/BottleCap01/CiLabel",
+			"BottleCapProps/BottleCap02/CiLabel",
+			"BottleCapProps/BottleCap03/CiLabel"
+		]
+		for label_path: String in bottle_cap_labels:
+			var cap_label: Label = map_root.get_node_or_null(label_path) as Label
+			if cap_label == null or cap_label.text != "Ci":
+				print("Map ", map_id, ": bottle-cap prop must use fictional 'Ci' mark at ", label_path)
+				return {"ok": false}
+
 		if first_valid_map_scene == null:
 			first_valid_map_scene = map_scene
 			first_valid_map_id = map_id
